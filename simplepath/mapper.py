@@ -3,53 +3,47 @@ from __future__ import unicode_literals
 
 import six
 
-from .constants import FailMode, NONE
+from .constants import DEFAULT_FAIL_MODE, FailMode, NONE
 from .exceptions import Skip
 from .expressions import Expression
 from .registry import registry
 
 
-class ConfigCompiler(object):
+class MapperConfig(dict):
     """
-    Mapper configuration compiler which helps
-    to build complied expressions tree.
+    Mapper configuration helper class which mimics a dictionary
+    however recursively compiles all subdictionaries.
     """
 
-    def __init__(self, name, bases, attrs):
-        self.name = name
-        self.bases = bases
-        self.attrs = attrs
+    def __init__(self,
+                 config,
+                 default=NONE,
+                 fail_mode=DEFAULT_FAIL_MODE,
+                 lookup_registry=None):
+        self.default = default
+        self.fail_mode = fail_mode
+        self.registry = lookup_registry or registry
 
-    def get_attr(self, attr):
-        if attr in self.attrs:
-            return self.attrs[attr]
+        self.update(self.compile(config))
 
-        for base in self.bases:
-            try:
-                return getattr(base, attr)
-            except AttributeError:
-                continue
-
-        raise AttributeError(
-            'None of the bases have {} attribute'
-            ''.format(attr)
+    def compile_node(self, node):
+        kwargs = dict(
+            default=self.default,
+            fail_mode=self.fail_mode,
+            lookup_registry=self.registry,
         )
 
-    @property
-    def config(self):
-        expression = lambda v: (
-            v
-            if isinstance(v, Expression)
-            else Expression(
-                v,
-                lookup_registry=self.get_attr('lookup_registry'),
-                default=self.get_attr('default'),
-                fail_mode=self.get_attr('fail_mode'),
-            )
-        )
+        if isinstance(node, Expression):
+            return node
+        elif isinstance(node, dict):
+            return MapperConfig(node, **kwargs)
+        else:
+            return Expression(node, **kwargs)
+
+    def compile(self, config):
         return {
-            k: expression(v)
-            for k, v in self.attrs['config'].items()
+            k: self.compile_node(v)
+            for k, v in config.items()
         }
 
 
@@ -73,10 +67,31 @@ class MapperMeta(type):
             return _super(cls, name, bases, attrs)
 
         attrs.update({
-            'config': ConfigCompiler(name, bases, attrs).config,
+            'config': MapperConfig(
+                attrs['config'],
+                default=cls.get_attr(bases, attrs, 'default'),
+                fail_mode=cls.get_attr(bases, attrs, 'fail_mode'),
+                lookup_registry=cls.get_attr(bases, attrs, 'lookup_registry'),
+            ),
         })
 
         return _super(cls, name, bases, attrs)
+
+    @classmethod
+    def get_attr(cls, bases, attrs, attr):
+        if attr in attrs:
+            return attrs[attr]
+
+        for base in bases:
+            try:
+                return getattr(base, attr)
+            except AttributeError:
+                continue
+
+        raise AttributeError(
+            'None of the bases have {} attribute'
+            ''.format(attr)
+        )
 
 
 class MapperBase(object):
@@ -86,7 +101,7 @@ class MapperBase(object):
     This class implements the actual mapping functionality.
     """
     default = NONE
-    fail_mode = FailMode.FAIL_IF_REQUIRED
+    fail_mode = FailMode.DEFAULT
     lookup_registry = registry
 
     def __init__(self):
@@ -103,18 +118,26 @@ class MapperBase(object):
     def get_lookup_context(self):
         return {}
 
+    def map_node(self, node):
+        if isinstance(node, dict):
+            output = {}
+            for key, node in node.items():
+                try:
+                    output[key] = self.map_node(node)
+                except Skip:
+                    pass
+            return output
+
+        else:
+            return node(
+                self.data,
+                lut=self.lut,
+                context=self.get_lookup_context(),
+            )
+
     def __call__(self, data):
-        output = {}
-        for key, expression in self.config.items():
-            try:
-                output[key] = expression(
-                    data,
-                    lut=self.lut,
-                    context=self.get_lookup_context(),
-                )
-            except Skip:
-                pass
-        return output
+        self.data = data
+        return self.map_node(self.config)
 
 
 class Mapper(six.with_metaclass(MapperMeta, MapperBase)):

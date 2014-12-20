@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import six
 
-from .constants import FailMode, NONE
+from .constants import DEFAULT_FAIL_MODE, FailMode, NONE
 from .exceptions import Skip
 from .registry import registry
 
@@ -12,19 +12,24 @@ class Expression(list):
     def __init__(self,
                  expression,
                  default=NONE,
-                 fail_mode=FailMode.FAIL_IF_REQUIRED,
+                 fail_mode=DEFAULT_FAIL_MODE,
                  lookup_registry=None):
         self.expression = expression
+
+        assert FailMode.is_valid(fail_mode), (
+            'fail_mode "{}" is not supported'
+            ''.format(fail_mode)
+        )
+
         self.default = default
         self.fail_mode = fail_mode
-
         self.registry = lookup_registry or registry
 
         self.compile()
 
     @property
-    def is_required(self):
-        return self.default is NONE
+    def has_default(self):
+        return self.default is not NONE
 
     def compile(self):
         expressions = self.expression.split('.')
@@ -76,8 +81,8 @@ class Expression(list):
                     lut[chain_hash] = node
         except:
             if any((self.fail_mode == FailMode.FAIL,
-                    self.fail_mode == FailMode.FAIL_IF_REQUIRED
-                    and self.is_required)):
+                    self.fail_mode == FailMode.DEFAULT
+                    and not self.has_default)):
                 raise
             if self.fail_mode == FailMode.SKIP:
                 raise Skip
