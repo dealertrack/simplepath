@@ -99,11 +99,18 @@ class MapperBase(object):
         """
         return self()(data)
 
+    def get_lookup_context(self):
+        return {}
+
     def __call__(self, data):
         output = {}
         for key, expression in self.config.items():
             try:
-                output[key] = expression(data, self.lut)
+                output[key] = expression(
+                    data,
+                    lut=self.lut,
+                    context=self.get_lookup_context(),
+                )
             except Skip:
                 pass
         return output

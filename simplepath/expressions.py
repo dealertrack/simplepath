@@ -58,7 +58,7 @@ class Expression(list):
 
             self.append(lookup)
 
-    def __call__(self, data, lut):
+    def __call__(self, data, lut={}, context={}):
         try:
             node = data
             for i, lookup in enumerate(self):
@@ -69,7 +69,9 @@ class Expression(list):
                 if chain_hash in lut:
                     node = lut[chain_hash]
                 else:
-                    node = lookup(node, extra={'root': data})
+                    extra = {'root': data}
+                    extra.update(context)
+                    node = lookup(node, extra=extra)
                     lut[chain_hash] = node
         except:
             if any((self.fail_mode == FailMode.FAIL,
