@@ -17,7 +17,7 @@ class Expression(list):
 
     @property
     def is_required(self):
-        return self.default is not NONE
+        return self.default is NONE
 
     def compile(self):
         expressions = self.expression.split('.')
@@ -61,14 +61,14 @@ class Expression(list):
                     self[:i + 1]
                 )))
                 if chain_hash in lut:
-                    node = lut(chain_hash)
+                    node = lut[chain_hash]
                 else:
                     node = lookup(node, extra={'root': data})
                     lut[chain_hash] = node
         except (KeyError, IndexError):
-            if not self.is_required:
-                self.default
-            raise
+            if self.is_required:
+                raise
+            return self.default
         else:
             return node
 
