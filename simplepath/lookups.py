@@ -32,7 +32,7 @@ class FindInListLookup(BaseLookup):
 
     def __call__(self, nodes, extra=None):
         for node in nodes:
-            present = {k: node[k] for k in self.conditions}
+            present = {k: node.get(k) for k in self.conditions}
             if present == self.conditions:
                 return node
         raise ValueError('Not found any node matching all conditions')
