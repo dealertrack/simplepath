@@ -1,17 +1,17 @@
 from __future__ import unicode_literals
 
-from .chains import LookupChain
+import six
+
 from .constants import NONE
 from .registry import registry
 
 
-class Expression(object):
+class Expression(list):
     def __init__(self, expression, default=NONE, lookup_registry=None):
         self.expression = expression
         self.default = default
 
         self.registry = lookup_registry or registry
-        self.chain = None
 
         self.compile()
 
@@ -21,15 +21,14 @@ class Expression(object):
 
     def compile(self):
         expressions = self.expression.split('.')
-        self.chain = LookupChain(default=self.default)
 
         for expression in expressions:
             # expressions like {name:value,key=value,key2=value}
             if all((expression.startswith('{'),
                     expression.endswith('}'))):
-                expression = expression[1:-1]
+                _expression = expression[1:-1]
                 # split expression to find name and arguments
-                split = expression.split(':', 1)
+                split = _expression.split(':', 1)
                 name = split[0]
                 args = []
                 kwargs = {}
@@ -42,15 +41,39 @@ class Expression(object):
                             kwargs.update(dict([pair]))
                         else:
                             args.append(pair[0])
-                lookup = self.registry[name]().setup(*args, **kwargs)
+                lookup = self.registry[name]().setup(
+                    expression=expression, *args, **kwargs
+                )
 
             else:
-                lookup = self.registry[None]().setup(expression)
+                lookup = self.registry[None]().setup(
+                    expression, expression=expression
+                )
 
-            self.chain.append(lookup)
+            self.append(lookup)
+
+    def eval(self, data, lut):
+        try:
+            node = data
+            for i, lookup in enumerate(self):
+                chain_hash = '{}'.format('.'.join(map(
+                    lambda i: six.text_type(i.expression),
+                    self[:i + 1]
+                )))
+                if chain_hash in lut:
+                    node = lut(chain_hash)
+                else:
+                    node = lookup(node, extra={'root': data})
+                    lut[chain_hash] = node
+        except (KeyError, IndexError):
+            if not self.is_required:
+                self.default
+            raise
+        else:
+            return node
 
     def __repr__(self):
         return ('<{} expression="{}" chain=[{}]>'
                 ''.format(self.__class__.__name__,
                           self.expression,
-                          ','.join(repr(i) for i in self.chain)))
+                          ','.join(repr(i) for i in self)))

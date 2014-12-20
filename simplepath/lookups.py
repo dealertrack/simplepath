@@ -6,6 +6,7 @@ class BaseLookup(object):
         pass
 
     def setup(self, *args, **kwargs):
+        self.expression = kwargs.pop('expression')
         self.config(*args, **kwargs)
         return self
 
