@@ -2,7 +2,54 @@ from __future__ import unicode_literals
 
 import six
 
+from .constants import FailMode, NONE
+from .exceptions import Skip
 from .expressions import Expression
+from .registry import registry
+
+
+class ConfigCompiler(object):
+    """
+    Mapper configuration compiler which helps
+    to build complied expressions tree.
+    """
+
+    def __init__(self, name, bases, attrs):
+        self.name = name
+        self.bases = bases
+        self.attrs = attrs
+
+    def get_attr(self, attr):
+        if attr in self.attrs:
+            return self.attrs[attr]
+
+        for base in self.bases:
+            try:
+                return getattr(base, attr)
+            except AttributeError:
+                continue
+
+        raise AttributeError(
+            'None of the bases have {} attribute'
+            ''.format(attr)
+        )
+
+    @property
+    def config(self):
+        expression = lambda v: (
+            v
+            if isinstance(v, Expression)
+            else Expression(
+                v,
+                lookup_registry=self.get_attr('lookup_registry'),
+                default=self.get_attr('default'),
+                fail_mode=self.get_attr('fail_mode'),
+            )
+        )
+        return {
+            k: expression(v)
+            for k, v in self.attrs['config'].items()
+        }
 
 
 class MapperMeta(type):
@@ -25,25 +72,10 @@ class MapperMeta(type):
             return _super(cls, name, bases, attrs)
 
         attrs.update({
-            'config': cls.compile_config(
-                attrs['config'],
-                attrs.pop('lookup_registry', None),
-            ),
+            'config': ConfigCompiler(name, bases, attrs).config,
         })
 
         return _super(cls, name, bases, attrs)
-
-    @classmethod
-    def compile_config(cls, config, registry=None):
-        expression = lambda v: (
-            v
-            if isinstance(v, Expression)
-            else Expression(v, lookup_registry=registry)
-        )
-        return {
-            k: expression(v)
-            for k, v in config.items()
-        }
 
 
 class MapperBase(object):
@@ -52,6 +84,9 @@ class MapperBase(object):
 
     This class implements the actual mapping functionality.
     """
+    default = NONE
+    fail_mode = FailMode.FAIL_IF_REQUIRED
+    lookup_registry = registry
 
     def __init__(self):
         self.lut = {}
@@ -67,7 +102,10 @@ class MapperBase(object):
     def __call__(self, data):
         output = {}
         for key, expression in self.config.items():
-            output[key] = expression(data, self.lut)
+            try:
+                output[key] = expression(data, self.lut)
+            except Skip:
+                pass
         return output
 
 

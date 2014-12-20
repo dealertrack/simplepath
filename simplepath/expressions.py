@@ -2,14 +2,20 @@ from __future__ import unicode_literals
 
 import six
 
-from .constants import NONE
+from .constants import FailMode, NONE
+from .exceptions import Skip
 from .registry import registry
 
 
 class Expression(list):
-    def __init__(self, expression, default=NONE, lookup_registry=None):
+    def __init__(self,
+                 expression,
+                 default=NONE,
+                 fail_mode=FailMode.FAIL_IF_REQUIRED,
+                 lookup_registry=None):
         self.expression = expression
         self.default = default
+        self.fail_mode = fail_mode
 
         self.registry = lookup_registry or registry
 
@@ -65,9 +71,13 @@ class Expression(list):
                 else:
                     node = lookup(node, extra={'root': data})
                     lut[chain_hash] = node
-        except (KeyError, IndexError):
-            if self.is_required:
+        except:
+            if any((self.fail_mode == FailMode.FAIL,
+                    self.fail_mode == FailMode.FAIL_IF_REQUIRED
+                    and self.is_required)):
                 raise
+            if self.fail_mode == FailMode.SKIP:
+                raise Skip
             return self.default
         else:
             return node
