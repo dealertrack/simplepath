@@ -67,7 +67,7 @@ class MapperBase(object):
     def __call__(self, data):
         output = {}
         for key, expression in self.config.items():
-            output[key] = expression.eval(data, self.lut)
+            output[key] = expression(data, self.lut)
         return output
 
 

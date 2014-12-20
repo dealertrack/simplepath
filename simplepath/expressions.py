@@ -52,7 +52,7 @@ class Expression(list):
 
             self.append(lookup)
 
-    def eval(self, data, lut):
+    def __call__(self, data, lut):
         try:
             node = data
             for i, lookup in enumerate(self):
