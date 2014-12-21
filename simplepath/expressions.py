@@ -14,12 +14,12 @@ class Expression(list):
                  default=NONE,
                  fail_mode=DEFAULT_FAIL_MODE,
                  lookup_registry=None):
-        self.expression = expression
-
         assert FailMode.is_valid(fail_mode), (
             'fail_mode "{}" is not supported'
             ''.format(fail_mode)
         )
+
+        self.expression = expression
 
         self.default = default
         self.fail_mode = fail_mode
@@ -47,7 +47,7 @@ class Expression(list):
 
                 # if split had more than one result, the rest are arguments
                 if len(split) > 1:
-                    for pairs in split[1].split('.'):
+                    for pairs in split[1].split(','):
                         pair = pairs.split('=')
                         if len(pair) > 1:
                             kwargs.update(dict([pair]))
