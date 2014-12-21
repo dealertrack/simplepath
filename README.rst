@@ -57,6 +57,47 @@ You can install ``simplepath`` using pip::
 
     $ pip install simplepath
 
+Quick Guide
+-----------
+
+Here is a quick example. For more documentation, please
+make sure to check out our `docs <https://simplepath.readthedocs.org>`_.
+
+::
+
+    from simplepath.mapper import Mapper
+
+    class MyMapper(Mapper):
+        config = {
+            'greetings': 'example.greetings',
+            'to': 'example.planets.{find:planet=Earth}.residents',
+        }
+
+    data = {
+        'example': {
+            'greetings': 'Hello',
+            'planets': [
+                {
+                    'planet': 'Mars',
+                    'residents': 'marsians',
+                },
+                {
+                    'planet': 'Earth',
+                    'residents': 'people',
+                },
+                {
+                    'planet': 'Space',
+                    'residents': 'aliends',
+                },
+            ]
+        }
+    }
+
+    MyMapper.map_data(data) == {
+        'greetings': 'Hello',
+        'to': 'people',
+    }
+
 Testing
 -------
 
