@@ -29,8 +29,9 @@ class TestMapperConfig(unittest.TestCase):
         mock_compile.return_value = {}
         self.config = MapperConfig(None)
 
+    @mock.patch.object(MapperConfig, 'optimize')
     @mock.patch.object(MapperConfig, 'compile')
-    def test_init(self, mock_compile):
+    def test_init(self, mock_compile, mock_optimize):
         mock_compile.return_value = {
             'foo': 'bar',
         }
@@ -42,6 +43,7 @@ class TestMapperConfig(unittest.TestCase):
             {'foo': 'bar'}
         )
         mock_compile.assert_called_once_with(mock.sentinel.config)
+        mock_optimize.assert_called_once_with()
 
     @mock.patch.object(MapperConfig, 'compile_node')
     def test_compile(self, mock_compile_node):
@@ -113,6 +115,7 @@ class TestMapperMeta(unittest.TestCase):
             default=mock_get_attr.return_value,
             fail_mode=mock_get_attr.return_value,
             lookup_registry=mock_get_attr.return_value,
+            optimize=mock_get_attr.return_value,
         )
         mock_get_attr.assert_has_calls([
             mock.call(mock.ANY, mock.ANY, 'default'),
