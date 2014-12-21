@@ -13,7 +13,8 @@ class Expression(list):
                  expression,
                  default=NONE,
                  fail_mode=DEFAULT_FAIL_MODE,
-                 lookup_registry=None):
+                 lookup_registry=None,
+                 compile=True):
         assert FailMode.is_valid(fail_mode), (
             'fail_mode "{}" is not supported'
             ''.format(fail_mode)
@@ -25,7 +26,19 @@ class Expression(list):
         self.fail_mode = fail_mode
         self.registry = lookup_registry or registry
 
-        self.compile()
+        if compile:
+            self.compile()
+
+    def copy_with(self, iterable):
+        copy = self.__class__(
+            expression=self.expression,
+            default=self.default,
+            fail_mode=self.fail_mode,
+            lookup_registry=self.registry,
+            compile=False,
+        )
+        copy.extend(iterable)
+        return copy
 
     @property
     def has_default(self):
@@ -75,7 +88,7 @@ class Expression(list):
                 if chain_hash in lut:
                     node = lut[chain_hash]
                 else:
-                    extra = {'root': data}
+                    extra = {'root': data, 'lut': lut}
                     extra.update(context)
                     node = lookup(node, extra=extra)
                     lut[chain_hash] = node

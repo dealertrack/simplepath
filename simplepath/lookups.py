@@ -36,3 +36,8 @@ class FindInListLookup(BaseLookup):
             if present == self.conditions:
                 return node
         raise ValueError('Not found any node matching all conditions')
+
+
+class LUTLookup(KeyLookup):
+    def __call__(self, node, extra=None):
+        return extra['lut'][self.key]

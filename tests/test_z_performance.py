@@ -74,7 +74,12 @@ class TestMapperPerformance(unittest.TestCase):
             output['foo{}'.format(i)] = data
         return output
 
-    def _test_performance(self, nodes, depth, iterations, expected_time):
+    def _test_performance(self,
+                          nodes,
+                          depth,
+                          iterations,
+                          expected_time,
+                          optimize):
         print()
         print('Testing performance with {} config expressions '
               'where each node has {} children '
@@ -92,7 +97,7 @@ class TestMapperPerformance(unittest.TestCase):
         print('Generated config in {} sec'.format(timer.elapsed))
 
         with Timer() as timer:
-            mapper = SimpleMapper(config)
+            mapper = SimpleMapper(config, optimize=optimize)
         print('Compiled {} config expressions in {} sec'
               ''.format(len(config), timer.elapsed))
 
@@ -105,8 +110,12 @@ class TestMapperPerformance(unittest.TestCase):
         print('Mapped {} nodes in [{}] sec'
               ''.format(len(mapped_data),
                         ','.join(map(six.text_type, times))))
-        print('Added {} entries to lut while mapping'
-              ''.format(len(_mapper.lut)))
+        print('Total lookups: {}'
+              ''.format(sum(map(lambda i: len(i),
+                                _mapper.config.values()))))
+        print('LUT entries: {}'.format(len(_mapper.lut)))
+        print('LUT reads: {}'.format(_mapper.lut.reads))
+        print('LUT writes: {}'.format(_mapper.lut.writes))
 
         self.assertLess(
             max(times), expected_time,
@@ -116,10 +125,20 @@ class TestMapperPerformance(unittest.TestCase):
 
     def test_performance_deep(self):
         self._test_performance(
-            nodes=3, depth=6, iterations=3, expected_time=2,
+            nodes=3, depth=6, iterations=3, expected_time=2, optimize=False,
+        )
+
+    def test_performance_deep_optimized(self):
+        self._test_performance(
+            nodes=3, depth=6, iterations=3, expected_time=2, optimize=True,
         )
 
     def test_performance_shallow(self):
         self._test_performance(
-            nodes=10, depth=2, iterations=3, expected_time=0.2,
+            nodes=10, depth=2, iterations=3, expected_time=0.2, optimize=False,
+        )
+
+    def test_performance_shallow_optimized(self):
+        self._test_performance(
+            nodes=10, depth=2, iterations=3, expected_time=0.2, optimize=True,
         )

@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 import six
 
-from .constants import DEFAULT_FAIL_MODE, FailMode, NONE
+from .constants import DEFAULT_FAIL_MODE, NONE
 from .exceptions import Skip
 from .expressions import Expression
+from .lookups import LUTLookup
+from .lut import LUT
 from .registry import registry
 
 
@@ -19,12 +21,16 @@ class MapperConfig(dict):
                  config,
                  default=NONE,
                  fail_mode=DEFAULT_FAIL_MODE,
-                 lookup_registry=None):
+                 lookup_registry=None,
+                 optimize=True):
         self.default = default
         self.fail_mode = fail_mode
         self.registry = lookup_registry or registry
 
         self.update(self.compile(config))
+        self.optimized = False
+        if optimize:
+            self.optimize()
 
     def compile_node(self, node):
         kwargs = dict(
@@ -45,6 +51,37 @@ class MapperConfig(dict):
             k: self.compile_node(v)
             for k, v in config.items()
         }
+
+    def _optimize(self, lut):
+        for k, v in self.items():
+            if isinstance(v, MapperConfig):
+                v._optimize(lut)
+                continue
+
+            optimized = None
+
+            for i, e in enumerate(v):
+                chain_hash = '{}'.format('.'.join(map(
+                    lambda i: i.expression,
+                    v[:i + 1]
+                )))
+
+                if chain_hash in lut:
+                    optimized = v.copy_with(
+                        [LUTLookup().setup(expression=chain_hash,
+                                           key=chain_hash)]
+                        + v[i + 1:]
+                    )
+                else:
+                    lut[chain_hash] = None
+
+            if optimized:
+                self[k] = optimized
+
+    def optimize(self):
+        lut = {}
+        self._optimize(lut)
+        self.optimized = True
 
 
 class MapperMeta(type):
@@ -72,6 +109,7 @@ class MapperMeta(type):
                 default=cls.get_attr(bases, attrs, 'default'),
                 fail_mode=cls.get_attr(bases, attrs, 'fail_mode'),
                 lookup_registry=cls.get_attr(bases, attrs, 'lookup_registry'),
+                optimize=cls.get_attr(bases, attrs, 'optimize'),
             ),
         })
 
@@ -103,9 +141,10 @@ class MapperBase(object):
     default = NONE
     fail_mode = DEFAULT_FAIL_MODE
     lookup_registry = registry
+    optimize = True
 
     def __init__(self):
-        self.lut = {}
+        self.lut = LUT()
 
     @classmethod
     def map_data(self, data):
