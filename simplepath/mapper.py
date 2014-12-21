@@ -101,7 +101,7 @@ class MapperBase(object):
     This class implements the actual mapping functionality.
     """
     default = NONE
-    fail_mode = FailMode.DEFAULT
+    fail_mode = DEFAULT_FAIL_MODE
     lookup_registry = registry
 
     def __init__(self):
