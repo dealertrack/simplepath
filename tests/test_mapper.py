@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import unittest
+from collections import OrderedDict
 
 import mock
 import six
@@ -183,10 +184,10 @@ class TestMapperBase(unittest.TestCase):
 
     def test_map_node_recursive(self):
         method = self.mapper.map_node
-        node = {
-            'foo': mock.sentinel.foo,
-            'bar': mock.sentinel.bar,
-        }
+        node = OrderedDict((
+            ('foo', mock.sentinel.foo),
+            ('bar', mock.sentinel.bar),
+        ))
         bar = mock.MagicMock()
 
         # mocking inside to test recursion
