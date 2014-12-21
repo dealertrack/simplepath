@@ -4,10 +4,12 @@ import unittest
 
 import six
 from contexttimer import Timer
+from nose.plugins.attrib import attr
 
 from simplepath.mapper import SimpleMapper
 
 
+@attr('slow')
 class TestMapperPerformance(unittest.TestCase):
     def _generate_config(self, nodes=2, depth=2):
         def _generate(nodes, depth, data=[], iteration=0):
