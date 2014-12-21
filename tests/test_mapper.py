@@ -22,8 +22,9 @@ TESTING_MODULE = 'simplepath.mapper'
 
 
 class TestMapperConfig(unittest.TestCase):
+    @mock.patch.object(MapperConfig, 'optimize')
     @mock.patch.object(MapperConfig, 'compile')
-    def setUp(self, mock_compile):
+    def setUp(self, mock_compile, mock_optimize):
         super(TestMapperConfig, self).setUp()
 
         mock_compile.return_value = {}
@@ -90,6 +91,53 @@ class TestMapperConfig(unittest.TestCase):
             fail_mode=mock.ANY,
             lookup_registry=mock.ANY,
         )
+
+    def test__optimize_recursive(self):
+        node = mock.MagicMock(spec=MapperConfig)
+        self.config.update({
+            'foo': node,
+        })
+
+        self.config._optimize(mock.sentinel.lut)
+
+        node._optimize.assert_called_once_with(mock.sentinel.lut)
+
+    @mock.patch(TESTING_MODULE + '.LUTLookup')
+    def test__optimize(self, mock_lut_lookup):
+        class Foo(list):
+            copy_with = mock.MagicMock()
+
+        node1 = mock.MagicMock(expression='hi')
+        node2 = mock.MagicMock(expression='hello')
+        self.config.update({
+            'foo': Foo([node1, node2]),
+        })
+        lut = {'hi': 'there'}
+
+        self.config._optimize(lut)
+
+        self.assertDictEqual(
+            self.config,
+            {
+                'foo': Foo.copy_with.return_value,
+            }
+        )
+        Foo.copy_with.assert_called_once_with([
+            mock_lut_lookup.return_value.setup.return_value,
+            node2,
+        ])
+        mock_lut_lookup.return_value.setup.assert_called_once_with(
+            expression='hi', key='hi',
+        )
+
+    @mock.patch.object(MapperConfig, '_optimize')
+    def test_optimize(self, mock_optimize):
+        self.assertFalse(self.config.optimized)
+
+        self.config.optimize()
+
+        self.assertTrue(self.config.optimized)
+        mock_optimize.assert_called_once_with({})
 
 
 class TestMapperMeta(unittest.TestCase):

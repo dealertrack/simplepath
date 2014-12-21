@@ -4,7 +4,12 @@ import unittest
 
 import mock
 
-from simplepath.lookups import BaseLookup, FindInListLookup, KeyLookup
+from simplepath.lookups import (
+    BaseLookup,
+    FindInListLookup,
+    KeyLookup,
+    LUTLookup,
+)
 
 
 class TestBaseLookup(unittest.TestCase):
@@ -107,3 +112,16 @@ class TestFindInListLookup(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.lookup(data)
+
+
+class TestLUTLookup(unittest.TestCase):
+    def setUp(self):
+        super(TestLUTLookup, self).setUp()
+        self.lookup = LUTLookup()
+
+    def test_call(self):
+        self.lookup.key = 'foo'
+
+        actual = self.lookup(None, extra={'lut': {'foo': 'bar'}})
+
+        self.assertEqual(actual, 'bar')
