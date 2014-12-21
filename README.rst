@@ -87,7 +87,7 @@ make sure to check out our `docs <https://simplepath.readthedocs.org>`_.
                 },
                 {
                     'planet': 'Space',
-                    'residents': 'aliends',
+                    'residents': 'aliens',
                 },
             ]
         }
