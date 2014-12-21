@@ -80,7 +80,6 @@ class TestMapperPerformance(unittest.TestCase):
                           nodes,
                           depth,
                           iterations,
-                          expected_time,
                           optimize):
         print()
         print('Testing performance with {} config expressions '
@@ -119,28 +118,22 @@ class TestMapperPerformance(unittest.TestCase):
         print('LUT reads: {}'.format(_mapper.lut.reads))
         print('LUT writes: {}'.format(_mapper.lut.writes))
 
-        self.assertLess(
-            max(times), expected_time,
-            'Mapper took more than {} seconds to map {} nodes'
-            ''.format(expected_time, len(mapped_data))
-        )
-
     def test_performance_deep(self):
         self._test_performance(
-            nodes=3, depth=6, iterations=3, expected_time=2, optimize=False,
+            nodes=3, depth=6, iterations=3, optimize=False,
         )
 
     def test_performance_deep_optimized(self):
         self._test_performance(
-            nodes=3, depth=6, iterations=3, expected_time=2, optimize=True,
+            nodes=3, depth=6, iterations=3, optimize=True,
         )
 
     def test_performance_shallow(self):
         self._test_performance(
-            nodes=10, depth=2, iterations=3, expected_time=0.2, optimize=False,
+            nodes=10, depth=2, iterations=3, optimize=False,
         )
 
     def test_performance_shallow_optimized(self):
         self._test_performance(
-            nodes=10, depth=2, iterations=3, expected_time=0.2, optimize=True,
+            nodes=10, depth=2, iterations=3, optimize=True,
         )
