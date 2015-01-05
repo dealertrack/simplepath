@@ -20,7 +20,7 @@ class TestMapperPerformance(unittest.TestCase):
                 ]
 
             _data = [
-                'foo{}.{{find:value={}}}.foo{}'.format(i, j, k)
+                'foo{}.<find:value={}>.foo{}'.format(i, j, k)
                 for i in range(nodes)
                 for j in range(nodes)
                 for k in range(nodes)

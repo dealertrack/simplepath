@@ -47,7 +47,7 @@ class TestExpression(unittest.TestCase):
     def test_compile(self):
         mock_lookup = mock.MagicMock()
         mock_animals = mock.MagicMock()
-        self.expression.expression = 'foo.{animals:parrot,cat=dog}.bar'
+        self.expression.expression = 'foo.<animals:parrot,cat=dog>.bar'
         self.expression.registry = {
             None: mock_lookup,
             'animals': mock_animals,
@@ -74,7 +74,7 @@ class TestExpression(unittest.TestCase):
             mock.call().setup(
                 'parrot',
                 cat='dog',
-                expression='{animals:parrot,cat=dog}'
+                expression='<animals:parrot,cat=dog>'
             ),
         ])
 
