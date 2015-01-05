@@ -9,7 +9,6 @@ import six
 from simplepath.exceptions import Skip
 from simplepath.expressions import Expression
 from simplepath.mapper import (
-    Mapper,
     MapperBase,
     MapperConfig,
     MapperMeta,
@@ -66,6 +65,7 @@ class TestMapperConfig(unittest.TestCase):
     @mock.patch(TESTING_MODULE + '.MapperConfig')
     def test_compile_node_recursive(self, mock_mapper_config):
         node = mock.MagicMock(spec=dict)
+        self.config.to_optimize = mock.sentinel.to_optimize
 
         actual = self.config.compile_node(node)
 
@@ -75,6 +75,7 @@ class TestMapperConfig(unittest.TestCase):
             default=mock.ANY,
             fail_mode=mock.ANY,
             lookup_registry=mock.ANY,
+            optimize=mock.sentinel.to_optimize,
         )
 
     @mock.patch.object(Expression, '__init__')
@@ -256,12 +257,16 @@ class TestMapperBase(unittest.TestCase):
 class TestHelpers(unittest.TestCase):
     @mock.patch(TESTING_MODULE + '.type', create=True)
     def test_simple_mapper(self, mock_type):
-        actual = SimpleMapper(mock.sentinel.config, foo='bar')
+        actual = SimpleMapper(
+            mock.sentinel.config,
+            mock.sentinel.base,
+            foo='bar',
+        )
 
         self.assertEqual(actual, mock_type.return_value)
         mock_type.assert_called_once_with(
             str('Mapper'),
-            (Mapper,),
+            (mock.sentinel.base,),
             {
                 'config': mock.sentinel.config,
                 'foo': 'bar',
@@ -272,6 +277,7 @@ class TestHelpers(unittest.TestCase):
     def test_map_data(self, mock_simple_mapper):
         actual = map_data(mock.sentinel.config,
                           mock.sentinel.data,
+                          mock.sentinel.base,
                           foo='bar')
 
         self.assertEqual(
@@ -280,7 +286,7 @@ class TestHelpers(unittest.TestCase):
              .map_data.return_value)
         )
         mock_simple_mapper.assert_called_once_with(
-            mock.sentinel.config, foo='bar',
+            mock.sentinel.config, mock.sentinel.base, foo='bar',
         )
         mock_simple_mapper.return_value.map_data.assert_called_once_with(
             mock.sentinel.data,

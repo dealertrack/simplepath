@@ -26,6 +26,7 @@ class MapperConfig(dict):
         self.default = default
         self.fail_mode = fail_mode
         self.registry = lookup_registry or registry
+        self.to_optimize = optimize
 
         self.update(self.compile(config))
         self.optimized = False
@@ -42,6 +43,9 @@ class MapperConfig(dict):
         if isinstance(node, Expression):
             return node
         elif isinstance(node, dict):
+            kwargs.update({
+                'optimize': self.to_optimize,
+            })
             return MapperConfig(node, **kwargs)
         else:
             return Expression(node, **kwargs)
@@ -188,7 +192,7 @@ class Mapper(six.with_metaclass(MapperMeta, MapperBase)):
     """
 
 
-def SimpleMapper(config, **attrs):
+def SimpleMapper(config, base_mapper=None, **attrs):
     """
     Simple function wrapper for creating mapper class.
 
@@ -210,10 +214,10 @@ def SimpleMapper(config, **attrs):
     attrs.update({
         'config': config,
     })
-    return type(str('Mapper'), (Mapper,), attrs)
+    return type(str('Mapper'), (base_mapper or Mapper,), attrs)
 
 
-def map_data(config, data, **attrs):
+def map_data(config, data, base_mapper=None, **attrs):
     """
     Method for mapping data using provided configuration.
 
@@ -228,4 +232,4 @@ def map_data(config, data, **attrs):
             mapped1 = mapper.map_data(data1)
             mapped2 = mapper.map_data(data2)
     """
-    return SimpleMapper(config, **attrs).map_data(data)
+    return SimpleMapper(config, base_mapper, **attrs).map_data(data)
