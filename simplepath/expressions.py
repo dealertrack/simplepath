@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import six
 
-from .constants import DEFAULT_FAIL_MODE, FailMode, NONE
+from .constants import DEFAULT_FAIL_MODE, DELIMITERS, NONE, FailMode
 from .exceptions import Skip
 from .registry import registry
 
@@ -45,13 +45,16 @@ class Expression(list):
         return self.default is not NONE
 
     def compile(self):
-        expressions = self.expression.split('.')
+        expressions = self.expression.split(DELIMITERS['expression'])
 
         for expression in expressions:
             # expressions like {name:value,key=value,key2=value}
-            if all((expression.startswith('{'),
-                    expression.endswith('}'))):
-                _expression = expression[1:-1]
+            if all((expression.startswith(DELIMITERS['lookup']['start']),
+                    expression.endswith(DELIMITERS['lookup']['end']))):
+                _expression = expression[
+                    len(DELIMITERS['lookup']['start']):
+                    -len(DELIMITERS['lookup']['end'])
+                ]
                 # split expression to find name and arguments
                 split = _expression.split(':', 1)
                 name = split[0]

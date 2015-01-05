@@ -2,6 +2,14 @@
 from __future__ import unicode_literals
 
 
+DELIMITERS = {
+    'lookup': {
+        'start': '{',
+        'end': '}',
+    },
+    'expression': '.',
+}
+
 # special None singleton which can be used
 # to differentiate whether a value is not provided,
 # provided or provided as None
