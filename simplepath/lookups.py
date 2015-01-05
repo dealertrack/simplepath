@@ -11,8 +11,19 @@ class BaseLookup(object):
         self.config(*args, **kwargs)
         return self
 
+    def repr(self):
+        return ''
+
     def __call__(self, node, extra=None):
         raise NotImplementedError
+
+    def __repr__(self):
+        return (
+            '<{} {}>'.format(
+                self.__class__.__name__,
+                self.repr(),
+            )
+        )
 
 
 class KeyLookup(BaseLookup):
@@ -25,6 +36,9 @@ class KeyLookup(BaseLookup):
         else:
             return node[self.key]
 
+    def repr(self):
+        return 'key="{}"'.format(self.key)
+
 
 class FindInListLookup(BaseLookup):
     def config(self, **conditions):
@@ -36,6 +50,12 @@ class FindInListLookup(BaseLookup):
             if present == self.conditions:
                 return node
         raise ValueError('Not found any node matching all conditions')
+
+    def repr(self):
+        return ', '.join(
+            '{}="{}"'.format(k, v)
+            for k, v in self.conditions.items()
+        )
 
 
 class LUTLookup(KeyLookup):
