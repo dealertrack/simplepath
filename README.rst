@@ -70,7 +70,7 @@ make sure to check out our `docs <https://simplepath.readthedocs.org>`_.
     class MyMapper(Mapper):
         config = {
             'greetings': 'example.greetings',
-            'to': 'example.planets.{find:planet=Earth}.residents',
+            'to': 'example.planets.<find:planet=Earth>.residents',
         }
 
     data = {
