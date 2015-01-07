@@ -109,6 +109,7 @@ class TestExpression(unittest.TestCase):
 
         actual = self.expression(
             mock.sentinel.data,
+            super_root=mock.sentinel.super_root,
             lut=lut,
             context={'some': 'stuff'},
         )
@@ -118,8 +119,9 @@ class TestExpression(unittest.TestCase):
             mock.sentinel.data,
             extra={
                 'root': mock.sentinel.data,
-                'some': 'stuff',
+                'super_root': mock.sentinel.super_root,
                 'lut': lut,
+                'context': {'some': 'stuff'},
             }
         )
 

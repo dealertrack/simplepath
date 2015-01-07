@@ -80,9 +80,10 @@ class Expression(list):
 
             self.append(lookup)
 
-    def __call__(self, data, lut=None, context=None):
+    def __call__(self, data, super_root=None, lut=None, context=None):
         lut = lut if lut is not None else {}
         context = context if context is not None else {}
+        super_root = super_root if super_root is not None else data
 
         try:
             node = data
@@ -94,8 +95,12 @@ class Expression(list):
                 if chain_hash in lut:
                     node = lut[chain_hash]
                 else:
-                    extra = {'root': data, 'lut': lut}
-                    extra.update(context)
+                    extra = {
+                        'root': data,
+                        'super_root': super_root,
+                        'lut': lut,
+                        'context': context,
+                    }
                     node = lookup(node, extra=extra)
                     lut[chain_hash] = node
 
