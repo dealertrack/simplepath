@@ -365,7 +365,10 @@ class TestMapperBase(unittest.TestCase):
 
     @mock.patch.object(MapperBase, 'get_lookup_context')
     @mock.patch.object(MapperBase, 'map_config_node')
-    def test_map_list_node(self, mock_map_config_node, mock_get_lookup_context):
+    def test_map_list_node(
+            self,
+            mock_map_config_node,
+            mock_get_lookup_context):
         node = mock.MagicMock(
             root=mock.MagicMock(return_value=[
                 mock.sentinel.foo,
