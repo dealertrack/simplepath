@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
-from __future__ import division, unicode_literals
+from __future__ import division, print_function, unicode_literals
+import sys
 import unittest
+from functools import partial
 
 import six
 from contexttimer import Timer
 from nose.plugins.attrib import attr
 
 from simplepath.mapper import SimpleMapper
+
+
+err_print = partial(print, file=sys.stderr)
 
 
 @attr('slow')
@@ -81,26 +86,26 @@ class TestMapperPerformance(unittest.TestCase):
                           depth,
                           iterations,
                           optimize):
-        print()
-        print('Testing performance with {} config expressions '
-              'where each node has {} children '
-              'with depth of {}'
-              ''.format(int((nodes ** 3) ** (depth / 2)),
-                        nodes,
-                        depth))
+        err_print()
+        err_print('Testing performance with {} config expressions '
+                  'where each node has {} children '
+                  'with depth of {}'
+                  ''.format(int((nodes ** 3) ** (depth / 2)),
+                            nodes,
+                            depth))
 
         with Timer() as timer:
             data = self._generate_data(nodes=nodes, depth=depth)
-        print('Generated data in {} sec'.format(timer.elapsed))
+        err_print('Generated data in {} sec'.format(timer.elapsed))
 
         with Timer() as timer:
             config = self._generate_config(nodes=nodes, depth=depth)
-        print('Generated config in {} sec'.format(timer.elapsed))
+        err_print('Generated config in {} sec'.format(timer.elapsed))
 
         with Timer() as timer:
             mapper = SimpleMapper(config, optimize=optimize)
-        print('Compiled {} config expressions in {} sec'
-              ''.format(len(config), timer.elapsed))
+        err_print('Compiled {} config expressions in {} sec'
+                  ''.format(len(config), timer.elapsed))
 
         times = []
         for i in range(iterations):
@@ -108,15 +113,15 @@ class TestMapperPerformance(unittest.TestCase):
                 _mapper = mapper()
                 mapped_data = _mapper(data)
             times.append(map_timer.elapsed)
-        print('Mapped {} nodes in [{}] sec'
-              ''.format(len(mapped_data),
-                        ','.join(map(six.text_type, times))))
-        print('Total lookups: {}'
-              ''.format(sum(map(lambda i: len(i),
-                                _mapper.config.values()))))
-        print('LUT entries: {}'.format(len(_mapper.lut)))
-        print('LUT reads: {}'.format(_mapper.lut.reads))
-        print('LUT writes: {}'.format(_mapper.lut.writes))
+        err_print('Mapped {} nodes in [{}] sec'
+                  ''.format(len(mapped_data),
+                            ','.join(map(six.text_type, times))))
+        err_print('Total lookups: {}'
+                  ''.format(sum(map(lambda i: len(i),
+                                    _mapper.config.values()))))
+        err_print('LUT entries: {}'.format(len(_mapper.lut)))
+        err_print('LUT reads: {}'.format(_mapper.lut.reads))
+        err_print('LUT writes: {}'.format(_mapper.lut.writes))
 
     def test_performance_deep(self):
         self._test_performance(
