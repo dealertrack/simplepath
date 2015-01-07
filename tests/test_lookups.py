@@ -31,9 +31,36 @@ class TestBaseLookup(unittest.TestCase):
         self.assertIs(actual, self.lookup)
         mock_config.assert_called_once_with()
 
+    def test_repr(self):
+        self.assertEqual(self.lookup.repr(), '')
+
+    def test_call_expression(self):
+        expression = mock.MagicMock()
+
+        actual = self.lookup.call_expression(
+            expression,
+            mock.sentinel.data,
+            {
+                'super_root': mock.sentinel.super_root,
+                'lut': mock.sentinel.lut,
+                'context': mock.sentinel.context,
+            }
+        )
+
+        self.assertEqual(actual, expression.return_value)
+        expression.assert_called_once_with(
+            mock.sentinel.data,
+            super_root=mock.sentinel.super_root,
+            lut=mock.sentinel.lut,
+            context=mock.sentinel.context,
+        )
+
     def test_call(self):
         with self.assertRaises(NotImplementedError):
             self.lookup(node=None)
+
+    def test__repr(self):
+        self.assertEqual(repr(self.lookup), '<BaseLookup >')
 
 
 class TestKeyLookup(unittest.TestCase):
@@ -59,6 +86,11 @@ class TestKeyLookup(unittest.TestCase):
         actual = self.lookup({'foo': 'bar'})
 
         self.assertEqual(actual, 'bar')
+
+    def test_repr(self):
+        self.lookup.key = 'foo'
+
+        self.assertEqual(self.lookup.repr(), 'key="foo"')
 
 
 class TestFindInListLookup(unittest.TestCase):
@@ -112,6 +144,13 @@ class TestFindInListLookup(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             self.lookup(data)
+
+    def test_repr(self):
+        self.lookup.conditions = {
+            'foo': 'bar',
+        }
+
+        self.assertEqual(self.lookup.repr(), 'foo="bar"')
 
 
 class TestLUTLookup(unittest.TestCase):

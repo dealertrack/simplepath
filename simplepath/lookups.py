@@ -14,6 +14,14 @@ class BaseLookup(object):
     def repr(self):
         return ''
 
+    def call_expression(self, expression, data, extra):
+        return expression(
+            data,
+            super_root=extra.get('super_root'),
+            lut=extra.get('lut'),
+            context=extra.get('context'),
+        )
+
     def __call__(self, node, extra=None):
         raise NotImplementedError
 
