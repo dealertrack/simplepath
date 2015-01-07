@@ -11,6 +11,27 @@ from .lut import LUT
 from .registry import registry
 
 
+class ListConfig(dict):
+    """
+    Public interface class for defining list mapper configs.
+
+    For example::
+
+        config = {
+            'foo': ListConfig(
+                'root_expression',
+                {
+                    'foo': 'expression',
+                }
+            )
+        }
+    """
+
+    def __init__(self, root, config):
+        self.root = root
+        super(ListConfig, self).__init__(config)
+
+
 class MapperConfig(dict):
     """
     Mapper configuration helper class which mimics a dictionary
@@ -34,21 +55,24 @@ class MapperConfig(dict):
             self.optimize()
 
     def compile_node(self, node):
-        kwargs = dict(
+        base_kwargs = dict(
             default=self.default,
             fail_mode=self.fail_mode,
             lookup_registry=self.registry,
         )
+        mapper_kwargs = base_kwargs.copy()
+        mapper_kwargs.update({
+            'optimize': False,
+        })
 
         if isinstance(node, Expression):
             return node
+        elif isinstance(node, ListConfig):
+            return MapperListConfig(node.root, node, **mapper_kwargs)
         elif isinstance(node, dict):
-            kwargs.update({
-                'optimize': self.to_optimize,
-            })
-            return MapperConfig(node, **kwargs)
+            return MapperConfig(node, **mapper_kwargs)
         else:
-            return Expression(node, **kwargs)
+            return Expression(node, **base_kwargs)
 
     def compile(self, config):
         return {
@@ -58,29 +82,32 @@ class MapperConfig(dict):
 
     def _optimize(self, lut):
         for k, v in self.items():
-            if isinstance(v, MapperConfig):
+            if isinstance(v, MapperListConfig):
+                v.optimize()
+
+            elif isinstance(v, MapperConfig):
                 v._optimize(lut)
-                continue
 
-            optimized = None
+            else:
+                optimized = None
 
-            for i, e in enumerate(v):
-                chain_hash = '{}'.format('.'.join(map(
-                    lambda i: i.expression,
-                    v[:i + 1]
-                )))
+                for i, e in enumerate(v):
+                    chain_hash = '{}'.format('.'.join(map(
+                        lambda l: l.expression,
+                        v[:i + 1]
+                    )))
 
-                if chain_hash in lut:
-                    optimized = v.copy_with(
-                        [LUTLookup().setup(expression=chain_hash,
-                                           key=chain_hash)]
-                        + v[i + 1:]
-                    )
-                else:
-                    lut[chain_hash] = None
+                    if chain_hash in lut:
+                        optimized = v.copy_with(
+                            [LUTLookup().setup(expression=chain_hash,
+                                               key=chain_hash)]
+                            + v[i + 1:]
+                        )
+                    else:
+                        lut[chain_hash] = None
 
-            if optimized:
-                self[k] = optimized
+                if optimized:
+                    self[k] = optimized
 
     def optimize(self):
         lut = {}
@@ -88,13 +115,24 @@ class MapperConfig(dict):
         self.optimized = True
 
 
+class MapperListConfig(MapperConfig):
+    """
+    Mapper configuration to compile configs provided as ListConfig
+    """
+
+    def __init__(self, root, *args, **kwargs):
+        super(MapperListConfig, self).__init__(*args, **kwargs)
+        # has to be after main __init__ for compile to work
+        self.root = self.compile_node(root)
+
+
 class MapperMeta(type):
     """
     Mapper metaclass.
 
-    This metalcass compiles configuration for performance.
+    This metaclass compiles configuration for performance.
     By doing that during class creation it allows class
-    to simply use conpiled configuration at run-time and not
+    to simply use compiled configuration at run-time and not
     waste time parsing configuration expressions.
     """
 
@@ -151,36 +189,64 @@ class MapperBase(object):
         self.lut = LUT()
 
     @classmethod
-    def map_data(self, data):
+    def map_data(cls, data):
         """
         Shortcut for mapping data which does not require
         to instantiate class in order to map data.
         """
-        return self()(data)
+        return cls()(data)
 
     def get_lookup_context(self):
         return {}
 
-    def map_node(self, node):
-        if isinstance(node, dict):
-            output = {}
-            for key, node in node.items():
-                try:
-                    output[key] = self.map_node(node)
-                except Skip:
-                    pass
-            return output
+    def map_list_node(self, node, data, super_root, lut):
+        output = []
+
+        # please note that we are not catching Skip exception here
+        # the reason being that map_list_node is called within
+        # map_config_node anyway which does catch it
+        input_list = node.root(
+            data,
+            super_root=super_root,
+            lut=lut,
+            context=self.get_lookup_context(),
+        )
+
+        for value in input_list:
+            # due to relative lookups, cannot use main lut
+            output.append(self.map_config_node(node, value, super_root, {}))
+
+        return output
+
+    def map_config_node(self, node, data, super_root, lut):
+        output = {}
+
+        for key, node in node.items():
+            try:
+                output[key] = self.map_node(node, data, super_root, lut)
+            except Skip:
+                pass
+
+        return output
+
+    def map_node(self, node, data, super_root, lut):
+        if isinstance(node, MapperListConfig):
+            return self.map_list_node(node, data, super_root, lut)
+
+        elif isinstance(node, MapperConfig):
+            return self.map_config_node(node, data, super_root, lut)
 
         else:
             return node(
-                self.data,
-                lut=self.lut,
+                data,
+                super_root=super_root,
+                lut=lut,
                 context=self.get_lookup_context(),
             )
 
     def __call__(self, data):
         self.data = data
-        return self.map_node(self.config)
+        return self.map_node(self.config, self.data, self.data, self.lut)
 
 
 class Mapper(six.with_metaclass(MapperMeta, MapperBase)):

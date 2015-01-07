@@ -9,8 +9,10 @@ import six
 from simplepath.exceptions import Skip
 from simplepath.expressions import Expression
 from simplepath.mapper import (
+    ListConfig,
     MapperBase,
     MapperConfig,
+    MapperListConfig,
     MapperMeta,
     SimpleMapper,
     map_data,
@@ -18,6 +20,18 @@ from simplepath.mapper import (
 
 
 TESTING_MODULE = 'simplepath.mapper'
+
+
+class TestListConfig(unittest.TestCase):
+    def test_init(self):
+        data = {
+            'foo': 'bar',
+        }
+
+        actual = ListConfig(mock.sentinel.root, data)
+
+        self.assertDictEqual(actual, data)
+        self.assertEqual(actual.root, mock.sentinel.root)
 
 
 class TestMapperConfig(unittest.TestCase):
@@ -65,7 +79,6 @@ class TestMapperConfig(unittest.TestCase):
     @mock.patch(TESTING_MODULE + '.MapperConfig')
     def test_compile_node_recursive(self, mock_mapper_config):
         node = mock.MagicMock(spec=dict)
-        self.config.to_optimize = mock.sentinel.to_optimize
 
         actual = self.config.compile_node(node)
 
@@ -75,7 +88,23 @@ class TestMapperConfig(unittest.TestCase):
             default=mock.ANY,
             fail_mode=mock.ANY,
             lookup_registry=mock.ANY,
-            optimize=mock.sentinel.to_optimize,
+            optimize=False,
+        )
+
+    @mock.patch(TESTING_MODULE + '.MapperListConfig')
+    def test_compile_node_list(self, mock_mapper_list_config):
+        node = mock.MagicMock(spec=ListConfig, root=mock.sentinel.root)
+
+        actual = self.config.compile_node(node)
+
+        self.assertEqual(actual, mock_mapper_list_config.return_value)
+        mock_mapper_list_config.assert_called_once_with(
+            mock.sentinel.root,
+            node,
+            default=mock.ANY,
+            fail_mode=mock.ANY,
+            lookup_registry=mock.ANY,
+            optimize=False,
         )
 
     @mock.patch.object(Expression, '__init__')
@@ -102,6 +131,16 @@ class TestMapperConfig(unittest.TestCase):
         self.config._optimize(mock.sentinel.lut)
 
         node._optimize.assert_called_once_with(mock.sentinel.lut)
+
+    def test__optimize_list(self):
+        node = mock.MagicMock(spec=MapperListConfig)
+        self.config.update({
+            'foo': node,
+        })
+
+        self.config._optimize(mock.sentinel.lut)
+
+        node.optimize.assert_called_once_with()
 
     @mock.patch(TESTING_MODULE + '.LUTLookup')
     def test__optimize(self, mock_lut_lookup):
@@ -139,6 +178,19 @@ class TestMapperConfig(unittest.TestCase):
 
         self.assertTrue(self.config.optimized)
         mock_optimize.assert_called_once_with({})
+
+
+class TestMapperListConfig(unittest.TestCase):
+    @mock.patch.object(MapperListConfig, 'compile_node')
+    def test_init(self, mock_compile_node):
+        actual = MapperListConfig(
+            mock.sentinel.root,
+            {},
+            optimize=False
+        )
+
+        self.assertEqual(actual.root, mock_compile_node.return_value)
+        mock_compile_node.assert_called_once_with(mock.sentinel.root)
 
 
 class TestMapperMeta(unittest.TestCase):
@@ -208,10 +260,16 @@ class TestMapperBase(unittest.TestCase):
 
     @mock.patch.object(MapperBase, 'map_node')
     def test_call(self, mock_map_node):
-        self.mapper(mock.sentinel.data)
+        actual = self.mapper(mock.sentinel.data)
 
+        self.assertEqual(actual, mock_map_node.return_value)
         self.assertEqual(self.mapper.data, mock.sentinel.data)
-        mock_map_node.assert_called_once_with(self.mapper.config)
+        mock_map_node.assert_called_once_with(
+            self.mapper.config,
+            mock.sentinel.data,
+            mock.sentinel.data,
+            self.mapper.lut,
+        )
 
     @mock.patch.object(MapperBase, '__call__')
     def test_map_data(self, mock_call):
@@ -223,35 +281,114 @@ class TestMapperBase(unittest.TestCase):
     @mock.patch.object(MapperBase, 'get_lookup_context')
     def test_map_node(self, mock_get_lookup_context):
         node = mock.MagicMock()
-        self.mapper.data = mock.sentinel.data
 
-        actual = self.mapper.map_node(node)
+        actual = self.mapper.map_node(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
 
         self.assertEqual(actual, node.return_value)
         node.assert_called_once_with(
             mock.sentinel.data,
-            lut=self.mapper.lut,
+            lut=mock.sentinel.lut,
+            super_root=mock.sentinel.root,
             context=mock_get_lookup_context.return_value,
         )
 
-    def test_map_node_recursive(self):
-        method = self.mapper.map_node
+    @mock.patch.object(MapperBase, 'map_config_node')
+    def test_map_node_config(self, mock_map_config_node):
+        node = mock.MagicMock(spec=MapperConfig)
+
+        actual = self.mapper.map_node(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+        self.assertEqual(actual, mock_map_config_node.return_value)
+        mock_map_config_node.assert_called_once_with(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+    @mock.patch.object(MapperBase, 'map_list_node')
+    def test_map_node_list(self, mock_map_list_node):
+        node = mock.MagicMock(spec=MapperListConfig)
+
+        actual = self.mapper.map_node(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+        self.assertEqual(actual, mock_map_list_node.return_value)
+        mock_map_list_node.assert_called_once_with(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+    @mock.patch.object(MapperBase, 'map_node')
+    def test_map_config_node(self, mock_map_node):
         node = OrderedDict((
             ('foo', mock.sentinel.foo),
             ('bar', mock.sentinel.bar),
         ))
         bar = mock.MagicMock()
+        mock_map_node.side_effect = Skip, bar
 
-        # mocking inside to test recursion
-        with mock.patch.object(MapperBase, 'map_node') as mock_map_node:
-            mock_map_node.side_effect = Skip, bar
-            actual = method(node)
+        actual = self.mapper.map_config_node(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
 
         self.assertDictEqual(actual, {'bar': bar})
         mock_map_node.assert_has_calls([
-            mock.call(mock.sentinel.foo),
-            mock.call(mock.sentinel.bar),
+            mock.call(mock.sentinel.foo,
+                      mock.sentinel.data,
+                      mock.sentinel.root,
+                      mock.sentinel.lut),
+            mock.call(mock.sentinel.bar,
+                      mock.sentinel.data,
+                      mock.sentinel.root,
+                      mock.sentinel.lut),
         ])
+
+    @mock.patch.object(MapperBase, 'get_lookup_context')
+    @mock.patch.object(MapperBase, 'map_config_node')
+    def test_map_list_node(self, mock_map_config_node, mock_get_lookup_context):
+        node = mock.MagicMock(
+            root=mock.MagicMock(return_value=[
+                mock.sentinel.foo,
+            ])
+        )
+
+        actual = self.mapper.map_list_node(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+        self.assertListEqual(actual, [
+            mock_map_config_node.return_value,
+        ])
+        mock_get_lookup_context.assert_called_once_with()
+        mock_map_config_node.assert_called_once_with(
+            node,
+            mock.sentinel.foo,
+            mock.sentinel.root,
+            {},
+        )
 
 
 class TestHelpers(unittest.TestCase):
