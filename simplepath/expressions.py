@@ -14,7 +14,7 @@ class Expression(list):
                  default=NONE,
                  fail_mode=DEFAULT_FAIL_MODE,
                  lookup_registry=None,
-                 compile=True):
+                 do_compile=True):
         assert FailMode.is_valid(fail_mode), (
             'fail_mode "{}" is not supported'
             ''.format(fail_mode)
@@ -26,7 +26,7 @@ class Expression(list):
         self.fail_mode = fail_mode
         self.registry = lookup_registry or registry
 
-        if compile:
+        if do_compile:
             self.compile()
 
     def copy_with(self, iterable):
@@ -35,7 +35,7 @@ class Expression(list):
             default=self.default,
             fail_mode=self.fail_mode,
             lookup_registry=self.registry,
-            compile=False,
+            do_compile=False,
         )
         copy.extend(iterable)
         return copy
@@ -80,12 +80,15 @@ class Expression(list):
 
             self.append(lookup)
 
-    def __call__(self, data, lut={}, context={}):
+    def __call__(self, data, lut=None, context=None):
+        lut = lut if lut is not None else {}
+        context = context if context is not None else {}
+
         try:
             node = data
             for i, lookup in enumerate(self):
                 chain_hash = '{}'.format('.'.join(map(
-                    lambda i: six.text_type(i.expression),
+                    lambda l: six.text_type(l.expression),
                     self[:i + 1]
                 )))
                 if chain_hash in lut:
@@ -95,6 +98,7 @@ class Expression(list):
                     extra.update(context)
                     node = lookup(node, extra=extra)
                     lut[chain_hash] = node
+
         except:
             if any((self.fail_mode == FailMode.FAIL,
                     self.fail_mode == FailMode.DEFAULT
@@ -103,6 +107,7 @@ class Expression(list):
             if self.fail_mode == FailMode.SKIP:
                 raise Skip
             return self.default
+
         else:
             return node
 

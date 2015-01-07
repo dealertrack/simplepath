@@ -15,7 +15,7 @@ class TestExpression(unittest.TestCase):
         super(TestExpression, self).setUp()
 
         with mock.patch.object(Expression, 'compile'):
-            self.expression = Expression(None)
+            self.expression = Expression('foo.expression')
 
     def test_init_invalid_fail_mode(self):
         with self.assertRaises(AssertionError):
@@ -31,6 +31,24 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expression.registry, registry)
         mock_compile.assert_called_once_with()
         self.assertListEqual(expression, [])
+
+    @mock.patch.object(Expression, 'compile')
+    def test_init_no_compile(self, mock_compile):
+        Expression('hello', do_compile=False)
+
+        self.assertFalse(mock_compile.called)
+
+    def test_copy_with(self):
+        iterable = [
+            mock.sentinel.one,
+            mock.sentinel.two,
+            mock.sentinel.three,
+        ]
+
+        actual = self.expression.copy_with(iterable)
+
+        self.assertListEqual(actual, iterable)
+        self.assertIsNot(actual, self.expression)
 
     def test_has_default(self):
         values = {
