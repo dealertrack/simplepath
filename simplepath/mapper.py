@@ -11,6 +11,16 @@ from .lut import LUT
 from .registry import registry
 
 
+class Value(object):
+    """
+    Public interface class for allowing to include hardcoded values
+    in configs vs adding lookups.
+    """
+
+    def __init__(self, value):
+        self.value = value
+
+
 class ListConfig(dict):
     """
     Public interface class for defining list mapper configs.
@@ -67,6 +77,8 @@ class MapperConfig(dict):
 
         if isinstance(node, Expression):
             return node
+        elif isinstance(node, Value):
+            return node
         elif isinstance(node, ListConfig):
             return MapperListConfig(node.root, node, **mapper_kwargs)
         elif isinstance(node, dict):
@@ -82,7 +94,10 @@ class MapperConfig(dict):
 
     def _optimize(self, lut):
         for k, v in self.items():
-            if isinstance(v, MapperListConfig):
+            if isinstance(v, Value):
+                continue
+
+            elif isinstance(v, MapperListConfig):
                 v.optimize()
 
             elif isinstance(v, MapperConfig):
@@ -230,7 +245,10 @@ class MapperBase(object):
         return output
 
     def map_node(self, node, data, super_root, lut):
-        if isinstance(node, MapperListConfig):
+        if isinstance(node, Value):
+            return node.value
+
+        elif isinstance(node, MapperListConfig):
             return self.map_list_node(node, data, super_root, lut)
 
         elif isinstance(node, MapperConfig):

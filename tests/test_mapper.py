@@ -15,6 +15,7 @@ from simplepath.mapper import (
     MapperListConfig,
     MapperMeta,
     SimpleMapper,
+    Value,
     map_data,
 )
 
@@ -71,6 +72,13 @@ class TestMapperConfig(unittest.TestCase):
 
     def test_compile_node(self):
         node = mock.MagicMock(spec=Expression)
+
+        actual = self.config.compile_node(node)
+
+        self.assertIs(actual, node)
+
+    def test_compile_node_value(self):
+        node = Value(mock.sentinel.value)
 
         actual = self.config.compile_node(node)
 
@@ -141,6 +149,16 @@ class TestMapperConfig(unittest.TestCase):
         self.config._optimize(mock.sentinel.lut)
 
         node.optimize.assert_called_once_with()
+
+    def test__optimize_value(self):
+        self.config.update({
+            'foo': Value(mock.sentinel.value),
+        })
+
+        self.config._optimize(mock.sentinel.lut)
+
+        # nothing to test here
+        # so really just testing that nothing blows up
 
     @mock.patch(TESTING_MODULE + '.LUTLookup')
     def test__optimize(self, mock_lut_lookup):
@@ -334,6 +352,16 @@ class TestMapperBase(unittest.TestCase):
             mock.sentinel.root,
             mock.sentinel.lut,
         )
+
+    def test_map_node_value(self):
+        actual = self.mapper.map_node(
+            Value(mock.sentinel.value),
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+        self.assertEqual(actual, mock.sentinel.value)
 
     @mock.patch.object(MapperBase, 'map_node')
     def test_map_config_node(self, mock_map_node):

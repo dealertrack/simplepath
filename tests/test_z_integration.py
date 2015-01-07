@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import unittest
 
-from simplepath.mapper import ListConfig, Mapper
+from simplepath.mapper import ListConfig, Mapper, Value
 
 
 class TestIntegration(unittest.TestCase):
@@ -10,6 +10,7 @@ class TestIntegration(unittest.TestCase):
         class Config(Mapper):
             config = {
                 'greetings': 'example.greetings',
+                'from': Value('friends'),
                 'to': 'example.planets.<find:planet=Earth>.residents',
                 'neighbors': ListConfig(
                     'example.planets',
@@ -41,6 +42,7 @@ class TestIntegration(unittest.TestCase):
         }
         expected = {
             'greetings': 'Hello',
+            'from': 'friends',
             'to': 'people',
             'neighbors': [
                 {
