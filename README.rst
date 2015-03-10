@@ -6,10 +6,11 @@ simplepath
     :target: http://badge.fury.io/py/simplepath
 
 .. image:: https://travis-ci.org/dealertrack/simplepath.png?branch=master
-        :target: https://travis-ci.org/dealertrack/simplepath
+    :target: https://travis-ci.org/dealertrack/simplepath
 
-.. image:: https://pypip.in/d/simplepath/badge.png
-        :target: https://pypi.python.org/pypi/simplepath
+.. image:: https://coveralls.io/repos/dealertrack/simplepath/badge.svg
+    :target: https://coveralls.io/r/dealertrack/simplepath
+
 
 ``simplepath`` is a library for data-structure lookups
 using a super simple expressions with performance in mind.
