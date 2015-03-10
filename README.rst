@@ -5,8 +5,8 @@ simplepath
 .. image:: https://badge.fury.io/py/simplepath.png
     :target: http://badge.fury.io/py/simplepath
 
-.. image:: https://travis-ci.org/miki725/simplepath.png?branch=master
-        :target: https://travis-ci.org/miki725/simplepath
+.. image:: https://travis-ci.org/dealertrack/simplepath.png?branch=master
+        :target: https://travis-ci.org/dealertrack/simplepath
 
 .. image:: https://pypip.in/d/simplepath/badge.png
         :target: https://pypi.python.org/pypi/simplepath
