@@ -30,10 +30,10 @@ setup(
     name='simplepath',
     version=__version__,
     author=__author__,
-    description=('simplepath is dictionary lookup utility/mapper '
+    description=('simplepath is a dictionary lookup utility/mapper '
                  'with performance in mind'),
     long_description='\n\n'.join([readme, history, authors, licence]),
-    url='https://github.com/miki725/simplepath',
+    url='https://github.com/dealertrack/simplepath',
     license='MIT',
     packages=find_packages(exclude=['test', 'test.*']),
     install_requires=requirements,
