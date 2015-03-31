@@ -3,4 +3,4 @@ from __future__ import unicode_literals
 
 
 __author__ = 'Miroslav Shubernetskiy'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
