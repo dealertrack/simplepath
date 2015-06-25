@@ -57,5 +57,5 @@ class TestConvertObjectToDict(unittest.TestCase):
                              convert_object_to_dict(self.test_person))
 
     def test_non_object_conversion(self):
-        """Return the same non-object element passed."""
+        """Ensure that the same non-object element passed is returned."""
         self.assertEqual(100, convert_object_to_dict(100))
