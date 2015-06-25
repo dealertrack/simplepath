@@ -19,7 +19,6 @@ such as ``xpath``, ``jsonpath``, ``jpath``, etc.
 
 * Free software: MIT license
 * GitHub: https://github.com/dealertrack/simplepath
-* Documentation: https://simplepath.readthedocs.org.
 
 Inspiration
 -----------
@@ -61,8 +60,7 @@ You can install ``simplepath`` using pip::
 Quick Guide
 -----------
 
-Here is a quick example. For more documentation, please
-check out our `docs <https://simplepath.readthedocs.org>`_.
+Here is a quick example.
 
 ::
 
@@ -80,7 +78,7 @@ check out our `docs <https://simplepath.readthedocs.org>`_.
             'planets': [
                 {
                     'planet': 'Mars',
-                    'residents': 'marsians',
+                    'residents': 'martians',
                 },
                 {
                     'planet': 'Earth',
@@ -98,6 +96,41 @@ check out our `docs <https://simplepath.readthedocs.org>`_.
         'greetings': 'Hello',
         'to': 'people',
     }
+
+Here is another example if your data is stored in an object.
+
+::
+
+    from simplepath.mapper import Mapper
+    from simplepath.utils import convert_object_to_dict
+
+    class MyMapper(Mapper):
+        config = {
+            'greetings': 'greetings',
+            'to': 'planets.<find:planet=Earth>.residents',
+        }
+
+    class Example(object):
+        def __init__(self, greetings, planets):
+            self.greetings = greetings
+            self.planets = planets
+
+    class Planet(object):
+        def __init__(self, planet, residents):
+            self.planet = planet
+            self.residents = residents
+
+    planets = [Planet('Mars', 'martians'), Planet('Earth', 'people'),
+               Planet('Space', 'aliens')]
+
+    obj_data = Example('Hello', planets)
+    data = convert_object_to_dict(obj_data)
+
+    MyMapper.map_data(data) == {
+        'greetings': 'Hello',
+        'to': 'people',
+    }
+
 
 Testing
 -------

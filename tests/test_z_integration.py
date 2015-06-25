@@ -27,7 +27,7 @@ class TestIntegration(unittest.TestCase):
                 'planets': [
                     {
                         'planet': 'Mars',
-                        'residents': 'marsians',
+                        'residents': 'martians',
                     },
                     {
                         'planet': 'Earth',
@@ -47,7 +47,7 @@ class TestIntegration(unittest.TestCase):
             'neighbors': [
                 {
                     'from': 'Mars',
-                    'neighbors': 'marsians',
+                    'neighbors': 'martians',
                 },
                 {
                     'from': 'Earth',

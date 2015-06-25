@@ -1,9 +1,9 @@
 Credits
 -------
 
-This utility was created at `dealertrack technologies`_
+This utility was created at `Dealertrack Technologies`_
 (`dealertrack GitHub`_) for our internal use so thank you
-dealertrack for allowing to contribute the utility
+Dealertrack for allowing to contribute the utility
 to the open-source community.
 
 Development Lead
@@ -14,7 +14,7 @@ Development Lead
 Contributors
 ~~~~~~~~~~~~
 
-None yet. Why not be the first?
+* Ndubisi Onuora - https://github.com/NdubisiOnuora
 
 
 .. _dealertrack GitHub: https://github.com/Dealertrack
