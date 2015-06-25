@@ -102,7 +102,7 @@ Here is another example if your data is stored in an object.
 ::
 
     from simplepath.mapper import Mapper
-    from simplepath.utils import convert_object_to_dict
+    from simplepath.utils import deepvars
 
     class MyMapper(Mapper):
         config = {
@@ -124,7 +124,7 @@ Here is another example if your data is stored in an object.
                Planet('Space', 'aliens')]
 
     obj_data = Example('Hello', planets)
-    data = convert_object_to_dict(obj_data)
+    data = deepvars(obj_data)
 
     MyMapper.map_data(data) == {
         'greetings': 'Hello',

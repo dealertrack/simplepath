@@ -1,9 +1,9 @@
 Credits
 -------
 
-This utility was created at `Dealertrack Technologies`_
+This utility was created at `dealertrack technologies`_
 (`dealertrack GitHub`_) for our internal use so thank you
-Dealertrack for allowing to contribute the utility
+dealertrack for allowing to contribute the utility
 to the open-source community.
 
 Development Lead
