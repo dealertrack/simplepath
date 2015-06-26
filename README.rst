@@ -19,7 +19,6 @@ such as ``xpath``, ``jsonpath``, ``jpath``, etc.
 
 * Free software: MIT license
 * GitHub: https://github.com/dealertrack/simplepath
-* Documentation: https://simplepath.readthedocs.org.
 
 Inspiration
 -----------
@@ -61,8 +60,7 @@ You can install ``simplepath`` using pip::
 Quick Guide
 -----------
 
-Here is a quick example. For more documentation, please
-check out our `docs <https://simplepath.readthedocs.org>`_.
+Here is a quick example.
 
 ::
 
@@ -80,7 +78,7 @@ check out our `docs <https://simplepath.readthedocs.org>`_.
             'planets': [
                 {
                     'planet': 'Mars',
-                    'residents': 'marsians',
+                    'residents': 'martians',
                 },
                 {
                     'planet': 'Earth',

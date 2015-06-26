@@ -14,7 +14,7 @@ Development Lead
 Contributors
 ~~~~~~~~~~~~
 
-None yet. Why not be the first?
+* Ndubisi Onuora - https://github.com/NdubisiOnuora
 
 
 .. _dealertrack GitHub: https://github.com/Dealertrack
