@@ -19,7 +19,7 @@ def deepvars(data_object):
         else:
             object_dict = vars(data_object).copy()
         for attrib_name, attrib_val in object_dict.items():
-            if isinstance(attrib_val, tuple) or isinstance(attrib_val, list):
+            if isinstance(attrib_val, (tuple, list)):
                 object_dict[attrib_name] = [deepvars(element)
                                             for element in attrib_val]
             elif isinstance(attrib_val, dict):
