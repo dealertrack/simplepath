@@ -97,41 +97,6 @@ Here is a quick example.
         'to': 'people',
     }
 
-Here is another example if your data is stored in an object.
-
-::
-
-    from simplepath.mapper import Mapper
-    from simplepath.utils import deepvars
-
-    class MyMapper(Mapper):
-        config = {
-            'greetings': 'greetings',
-            'to': 'planets.<find:planet=Earth>.residents',
-        }
-
-    class Example(object):
-        def __init__(self, greetings, planets):
-            self.greetings = greetings
-            self.planets = planets
-
-    class Planet(object):
-        def __init__(self, planet, residents):
-            self.planet = planet
-            self.residents = residents
-
-    planets = [Planet('Mars', 'martians'), Planet('Earth', 'people'),
-               Planet('Space', 'aliens')]
-
-    obj_data = Example('Hello', planets)
-    data = deepvars(obj_data)
-
-    MyMapper.map_data(data) == {
-        'greetings': 'Hello',
-        'to': 'people',
-    }
-
-
 Testing
 -------
 
