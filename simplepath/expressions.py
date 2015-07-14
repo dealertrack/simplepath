@@ -15,6 +15,8 @@ class Expression(list):
                  fail_mode=DEFAULT_FAIL_MODE,
                  lookup_registry=None,
                  do_compile=True):
+        super(Expression, self).__init__()
+
         assert FailMode.is_valid(fail_mode), (
             'fail_mode "{}" is not supported'
             ''.format(fail_mode)
@@ -69,6 +71,19 @@ class Expression(list):
                             kwargs.update(dict([pair]))
                         else:
                             args.append(pair[0])
+
+                if name not in self.registry:
+                    registered = [i for i in self.registry.keys() if i]
+                    raise KeyError(
+                        '"{name}" lookup is not registered in "{registry}". '
+                        'Currently registered lookups are "{registered}". '
+                        'Please make sure to register all custom lookups '
+                        'before compiling expressions.'
+                        ''.format(name=name,
+                                  registry=self.registry.name,
+                                  registered=', '.join(registered))
+                    )
+
                 lookup = self.registry[name]().setup(
                     expression=expression, *args, **kwargs
                 )
@@ -104,7 +119,7 @@ class Expression(list):
                     node = lookup(node, extra=extra)
                     lut[chain_hash] = node
 
-        except:
+        except Exception:
             if any((self.fail_mode == FailMode.FAIL,
                     self.fail_mode == FailMode.DEFAULT
                     and not self.has_default)):

@@ -3,11 +3,12 @@ from __future__ import unicode_literals
 import unittest
 
 import mock
+import six
 
-from simplepath.constants import DEFAULT_FAIL_MODE, FailMode, NONE
+from simplepath.constants import DEFAULT_FAIL_MODE, NONE, FailMode
 from simplepath.exceptions import Skip
 from simplepath.expressions import Expression
-from simplepath.registry import registry
+from simplepath.registry import LookupRegistry, registry
 
 
 class TestExpression(unittest.TestCase):
@@ -95,6 +96,21 @@ class TestExpression(unittest.TestCase):
                 expression='<animals:parrot,cat=dog>'
             ),
         ])
+
+    def test_compile_not_valid_lookup(self):
+        mock_lookup = mock.MagicMock()
+        self.expression.expression = 'foo.<animals:parrot,cat=dog>.bar'
+        self.expression.registry = LookupRegistry(
+            'my_registry', {
+                None: mock_lookup,
+            }
+        )
+
+        with self.assertRaises(KeyError) as e:
+            self.expression.compile()
+
+        self.assertIn('"animals" lookup is not registered in "my_registry"',
+                      six.text_type(e.exception))
 
     def test_call(self):
         self.expression.expression = 'hello.world'
