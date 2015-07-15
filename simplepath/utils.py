@@ -4,18 +4,25 @@ from __future__ import unicode_literals
 
 
 def deepvars(data_object):
-    """Convert all of the non-function attributes of an object into
-       a dictionary.
-       Example:
-       class Planet(object):
-           def __init__(self, name, residents):
-               self.name = name
-               self.residents = residents
-       The return dict for Planet("Mars", "martians") will be:
-       {"name": "Mars", "residents": "martians"}
+    """
+    Recursively convert all of the object attributes into a dictionary.
+
+    Example:
+
+    ::
+
+        >>> class Planet(object):
+        ...    def __init__(self, name, residents):
+        ...        self.name = name
+        ...        self.residents = residents
+        >>> assert deepvars(Planet("Mars", "martians")) == {
+        ...     "name": "Mars",
+        ...     "residents": "martians",
+        ... }
 
     Args:
-        data_object(object): any Python object
+        data_object (object): any Python object
+
     Returns:
         The dictionary representation of all fields in the Python object.
     """
