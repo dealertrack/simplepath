@@ -2,7 +2,8 @@
 contexttimer
 coverage
 flake8
-mock
+importanize
+mock==1.0.1
 nose
 rednose
 sphinx

@@ -19,6 +19,11 @@ class TestIntegration(unittest.TestCase):
                         'neighbors': 'residents',
                     },
                 ),
+                'owning': [
+                    'cool_object',
+                    Value('with'),
+                    Value('Ion Engine'),
+                ],
             }
 
         data = {
@@ -38,7 +43,8 @@ class TestIntegration(unittest.TestCase):
                         'residents': 'aliens',
                     },
                 ]
-            }
+            },
+            'cool_object': 'Space Shuttle',
         }
         expected = {
             'greetings': 'Hello',
@@ -57,6 +63,11 @@ class TestIntegration(unittest.TestCase):
                     'from': 'Space',
                     'neighbors': 'aliens',
                 }
+            ],
+            'owning': [
+                'Space Shuttle',
+                'with',
+                'Ion Engine',
             ]
         }
 

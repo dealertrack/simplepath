@@ -20,6 +20,9 @@ class Value(object):
     def __init__(self, value):
         self.value = value
 
+    def __repr__(self):
+        return '<{} value="{}">'.format(self.__class__.__name__, self.value)
+
 
 class ListConfig(dict):
     """
@@ -54,6 +57,8 @@ class MapperConfig(dict):
                  fail_mode=DEFAULT_FAIL_MODE,
                  lookup_registry=None,
                  optimize=True):
+        super(MapperConfig, self).__init__()
+
         self.default = default
         self.fail_mode = fail_mode
         self.registry = lookup_registry or registry
@@ -62,7 +67,7 @@ class MapperConfig(dict):
         self.update(self.compile(config))
         self.optimized = False
         if optimize:
-            self.optimize()
+            self.run_optimization()
 
     def compile_node(self, node):
         base_kwargs = dict(
@@ -83,6 +88,8 @@ class MapperConfig(dict):
             return MapperListConfig(node.root, node, **mapper_kwargs)
         elif isinstance(node, dict):
             return MapperConfig(node, **mapper_kwargs)
+        elif isinstance(node, list):
+            return [self.compile_node(i) for i in node]
         else:
             return Expression(node, **base_kwargs)
 
@@ -92,42 +99,77 @@ class MapperConfig(dict):
             for k, v in config.items()
         }
 
-    def _optimize(self, lut):
-        for k, v in self.items():
-            if isinstance(v, Value):
-                continue
+    def _optimize_value(self, node, lut):
+        return node
 
-            elif isinstance(v, MapperListConfig):
-                v.optimize()
+    def _optimize_list_config(self, node, lut):
+        # list lut namespace cannot interfere with
+        return node.run_optimization()
 
-            elif isinstance(v, MapperConfig):
-                v._optimize(lut)
+    def _optimize_mapper_config(self, node, lut):
+        return node.optimize(lut)
 
+    def _optimize_expression(self, node, lut):
+        optimized = None
+
+        for i, e in enumerate(node):
+            chain_hash = '{}'.format('.'.join(map(
+                lambda l: l.expression,
+                node[:i + 1]
+            )))
+
+            if chain_hash in lut:
+                optimized = node.copy_with(
+                    [LUTLookup().setup(expression=chain_hash,
+                                       key=chain_hash)]
+                    + node[i + 1:]
+                )
             else:
-                optimized = None
+                # mark the expression as available in the lut
+                # so that other expressions can be aware
+                # that a particular value will be computed by
+                # a different expression
+                lut[chain_hash] = None
 
-                for i, e in enumerate(v):
-                    chain_hash = '{}'.format('.'.join(map(
-                        lambda l: l.expression,
-                        v[:i + 1]
-                    )))
+        return optimized or node
 
-                    if chain_hash in lut:
-                        optimized = v.copy_with(
-                            [LUTLookup().setup(expression=chain_hash,
-                                               key=chain_hash)]
-                            + v[i + 1:]
-                        )
-                    else:
-                        lut[chain_hash] = None
+    def _optimize_list(self, node, lut):
+        return [self._optimize(i, lut) for i in node]
 
-                if optimized:
-                    self[k] = optimized
+    def _optimize(self, node, lut):
+        if isinstance(node, Value):
+            return self._optimize_value(node, lut)
 
-    def optimize(self):
+        elif isinstance(node, MapperListConfig):
+            return self._optimize_list_config(node, lut)
+
+        elif isinstance(node, MapperConfig):
+            return self._optimize_mapper_config(node, lut)
+
+        elif isinstance(node, Expression):
+            return self._optimize_expression(node, lut)
+
+        elif isinstance(node, list):
+            return self._optimize_list(node, lut)
+
+        else:
+            raise TypeError(
+                'Why are you even here? '
+                'Were you looking at your type map upside down? '
+                '"{}" is not even on the map.'
+                ''.format(type(node))
+            )
+
+    def optimize(self, lut):
+        for k in list(self.keys()):
+            self[k] = self._optimize(self[k], lut)
+        return self
+
+    def run_optimization(self):
         lut = {}
-        self._optimize(lut)
+        self.optimize(lut)
         self.optimized = True
+        return self
 
 
 class MapperListConfig(MapperConfig):
@@ -214,6 +256,14 @@ class MapperBase(object):
     def get_lookup_context(self):
         return {}
 
+    def map_expression(self, node, data, super_root, lut):
+        return node(
+            data,
+            super_root=super_root,
+            lut=lut,
+            context=self.get_lookup_context(),
+        )
+
     def map_list_node(self, node, data, super_root, lut):
         output = []
 
@@ -244,6 +294,9 @@ class MapperBase(object):
 
         return output
 
+    def map_list(self, node, data, super_root, lut):
+        return [self.map_node(i, data, super_root, lut) for i in node]
+
     def map_node(self, node, data, super_root, lut):
         if isinstance(node, Value):
             return node.value
@@ -254,12 +307,16 @@ class MapperBase(object):
         elif isinstance(node, MapperConfig):
             return self.map_config_node(node, data, super_root, lut)
 
+        elif isinstance(node, Expression):
+            return self.map_expression(node, data, super_root, lut)
+
+        elif isinstance(node, list):
+            return self.map_list(node, data, super_root, lut)
+
         else:
-            return node(
-                data,
-                super_root=super_root,
-                lut=lut,
-                context=self.get_lookup_context(),
+            raise TypeError(
+                '"{}" does not quality for free ice-cream.'
+                ''.format(type(node))
             )
 
     def __call__(self, data):
