@@ -28,13 +28,21 @@ class ListConfig(dict):
     """
     Public interface class for defining list mapper configs.
 
+    It is used to return a list of dictionaries based on the value in the
+    root_expression. It is analogous to map(func, list) in which the
+    func's return value is the mapping, and the list is the final node
+    in the root expression.
+
     For example::
 
         config = {
-            'foo': ListConfig(
+            'new_key': ListConfig(
                 'root_expression',
                 {
-                    'foo': 'expression',
+                    'key1': 'expression1',
+                    'key2': 'expression2',
+                     ...
+                    'keyN': 'expressionN',
                 }
             )
         }
