@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 import operator
 from decimal import Decimal
 
-from .utils import divide
-
 
 class BaseLookup(object):
     def config(self, *args, **kwargs):
@@ -112,10 +110,13 @@ class ArithmeticLookup(BaseLookup):
     Perform an arithmetic operation on two operands and return the value.
     <arith:operator_str,operand,reverse>
     Example: To return the quotient of 12 with the current node do
-    <arith:/,12,reverse=True>
+    <arith://,12,reverse=True>
+
+    Note that / will use true division while // will use floordiv.
     """
     OPERATORS = {
-        '/': divide,
+        '/': operator.truediv,
+        '//': operator.floordiv,
         '*': operator.mul,
         '+': operator.add,
         '-': operator.sub,

@@ -205,40 +205,46 @@ class TestArithmeticLookup(unittest.TestCase):
         super(TestArithmeticLookup, self).setUp()
         self.arith_lookup = ArithmeticLookup()
 
+    def test_config_truediv(self):
+        self.arith_lookup.config('/', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.truediv)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_floordiv(self):
+        self.arith_lookup.config('//', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.floordiv)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
     def test_config_add(self):
-        self.arith_lookup.config('+', 15)
+        self.arith_lookup.config('+', '15')
         self.assertEqual(self.arith_lookup.operator, operator.add)
-        self.assertEqual(self.arith_lookup.operand, 15)
+        self.assertEqual(self.arith_lookup.operand, '15')
         self.assertEqual(self.arith_lookup.reverse, False)
 
     def test_config_sub(self):
-        self.arith_lookup.config('-', 15, True)
+        self.arith_lookup.config('-', '15', True)
         self.assertEqual(self.arith_lookup.operator, operator.sub)
-        self.assertEqual(self.arith_lookup.operand, 15)
+        self.assertEqual(self.arith_lookup.operand, '15')
         self.assertEqual(self.arith_lookup.reverse, True)
 
     def test_config_mul(self):
-        self.arith_lookup.config('*', 15)
+        self.arith_lookup.config('*', '15')
         self.assertEqual(self.arith_lookup.operator, operator.mul)
-        self.assertEqual(self.arith_lookup.operand, 15)
+        self.assertEqual(self.arith_lookup.operand, '15')
         self.assertEqual(self.arith_lookup.reverse, False)
 
-    def test_config_div(self):
-        self.arith_lookup.config('/', 15, True)
-        self.assertEqual(self.arith_lookup.operator, utils.divide)
-        self.assertEqual(self.arith_lookup.operand, 15)
-        self.assertEqual(self.arith_lookup.reverse, True)
-
     def test_config_pow(self):
-        self.arith_lookup.config('^', 15)
+        self.arith_lookup.config('^', '15')
         self.assertEqual(self.arith_lookup.operator, operator.pow)
-        self.assertEqual(self.arith_lookup.operand, 15)
+        self.assertEqual(self.arith_lookup.operand, '15')
         self.assertEqual(self.arith_lookup.reverse, False)
 
     def test_config_mod(self):
-        self.arith_lookup.config('%', 15)
+        self.arith_lookup.config('%', '15')
         self.assertEqual(self.arith_lookup.operator, operator.mod)
-        self.assertEqual(self.arith_lookup.operand, 15)
+        self.assertEqual(self.arith_lookup.operand, '15')
         self.assertEqual(self.arith_lookup.reverse, False)
 
     def test_config_unsupported(self):
@@ -254,3 +260,11 @@ class TestArithmeticLookup(unittest.TestCase):
     def test_call_reverse(self):
         self.arith_lookup.config('-', 10, True)
         self.assertEqual(-5, self.arith_lookup(15))
+
+    def test_call_true_division(self):
+        self.arith_lookup.config('/', 2)
+        self.assertEqual(2.5, self.arith_lookup(5))
+
+    def test_call_floor_division(self):
+        self.arith_lookup.config('//', 2)
+        self.assertEqual(2, self.arith_lookup(5))

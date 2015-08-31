@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Module that describes all utility functions for Simplepath."""
 from __future__ import unicode_literals
-import operator
 
 
 def deepvars(data_object):
@@ -51,11 +50,3 @@ def deepvars(data_object):
         return object_dict
     else:
         return data_object
-
-
-def divide(a, b):
-    """Performs division according to the / operator."""
-    try:
-        return operator.div(a, b)
-    except AttributeError:
-        return operator.truediv(a, b)
