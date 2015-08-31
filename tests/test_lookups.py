@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import unittest
 import operator
+import unittest
 from decimal import Decimal
+
 import mock
 
+from simplepath import utils
 from simplepath.lookups import (
+    ArithmeticLookup,
+    AsTypeLookup,
     BaseLookup,
     FindInListLookup,
     KeyLookup,
     LUTLookup,
-    AsTypeLookup,
-    ArithmeticLookup
 )
-from simplepath import utils
 
 
 class TestBaseLookup(unittest.TestCase):

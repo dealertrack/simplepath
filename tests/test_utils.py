@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests all functions in simplepath.utils"""
 from __future__ import unicode_literals
-import unittest
 import operator
+import unittest
 
 from mock import patch
 
