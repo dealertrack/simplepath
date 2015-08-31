@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import operator
 from decimal import Decimal
 
+import utils
+
 
 class BaseLookup(object):
     def config(self, *args, **kwargs):
@@ -112,6 +114,15 @@ class ArithmeticLookup(BaseLookup):
     Example: To return the quotient of 12 with the current node do
     <arith:/,12,reverse=True>
     """
+    OPERATORS = {
+        '/': utils.divide,
+        '*': operator.mul,
+        '+': operator.add,
+        '-': operator.sub,
+        '%': operator.mod,
+        '^': operator.pow
+    }
+
     def config(self, oper_name, operand, reverse=False):
         """
         Args:
@@ -121,18 +132,10 @@ class ArithmeticLookup(BaseLookup):
             reverse (bool): whether the operation should be reversed;
                             Example: for subtraction, operand - node
         """
-        OPERATORS = {
-            "/": operator.div,
-            "*": operator.mul,
-            "+": operator.add,
-            "-": operator.sub,
-            "%": operator.mod,
-            "^": operator.pow
-        }
-        if oper_name not in OPERATORS.keys():
+        if oper_name not in self.OPERATORS.keys():
             raise ValueError('Unsupported operator {}'.format(oper_name))
 
-        self.operator = OPERATORS[oper_name]
+        self.operator = self.OPERATORS[oper_name]
         self.reverse = reverse
         self.operand = operand
 

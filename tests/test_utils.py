@@ -3,7 +3,9 @@
 from __future__ import unicode_literals
 import unittest
 
-from simplepath.utils import deepvars
+from mock import patch
+
+from simplepath.utils import deepvars, divide
 
 
 class Person(object):
@@ -74,3 +76,19 @@ class TestDeepVars(unittest.TestCase):
     def test_non_object_conversion(self):
         """The same non-object element passed should be returned."""
         self.assertEqual(100, deepvars(100))
+
+
+class TestDivide(unittest.TestCase):
+    """Tests for the divide utility."""
+    def test_divide_div_defined(self):
+        """utils.divide must use operator.div when it is defined"""
+        self.assertEqual(2, divide(5, 2))
+
+    @patch('simplepath.utils.operator.div')
+    def test_divide_div_undefined(self, mock_div):
+        """
+        utils.divide must use operator.truediv when operator.div
+        is not defined
+        """
+        mock_div.side_effect = AttributeError
+        self.assertEqual(2.5, divide(5, 2))

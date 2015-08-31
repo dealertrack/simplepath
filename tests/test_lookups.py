@@ -2,9 +2,8 @@
 from __future__ import unicode_literals
 import unittest
 import operator
-
-import mock
 from decimal import Decimal
+import mock
 
 from simplepath.lookups import (
     BaseLookup,
@@ -14,6 +13,7 @@ from simplepath.lookups import (
     AsTypeLookup,
     ArithmeticLookup
 )
+from simplepath import utils
 
 
 class TestBaseLookup(unittest.TestCase):
@@ -224,7 +224,7 @@ class TestArithmeticLookup(unittest.TestCase):
 
     def test_config_div(self):
         self.arith_lookup.config('/', 15, True)
-        self.assertEqual(self.arith_lookup.operator, operator.div)
+        self.assertEqual(self.arith_lookup.operator, utils.divide)
         self.assertEqual(self.arith_lookup.operand, 15)
         self.assertEqual(self.arith_lookup.reverse, True)
 
