@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import operator
 from decimal import Decimal
 
-import utils
+from .utils import divide
 
 
 class BaseLookup(object):
@@ -115,7 +115,7 @@ class ArithmeticLookup(BaseLookup):
     <arith:/,12,reverse=True>
     """
     OPERATORS = {
-        '/': utils.divide,
+        '/': divide,
         '*': operator.mul,
         '+': operator.add,
         '-': operator.sub,
