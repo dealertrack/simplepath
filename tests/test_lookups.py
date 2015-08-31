@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import operator
 import unittest
+from decimal import Decimal
 
 import mock
 
 from simplepath.lookups import (
+    ArithmeticLookup,
+    AsTypeLookup,
     BaseLookup,
     FindInListLookup,
     KeyLookup,
@@ -164,3 +168,102 @@ class TestLUTLookup(unittest.TestCase):
         actual = self.lookup(None, extra={'lut': {'foo': 'bar'}})
 
         self.assertEqual(actual, 'bar')
+
+
+class TestAsTypeLookup(unittest.TestCase):
+    def setUp(self):
+        super(TestAsTypeLookup, self).setUp()
+        self.astype_lookup = AsTypeLookup()
+
+    def test_config_int(self):
+        self.astype_lookup.config('int')
+        self.assertEqual(self.astype_lookup.type, int)
+
+    def test_config_float(self):
+        self.astype_lookup.config('float')
+        self.assertEqual(self.astype_lookup.type, float)
+
+    def test_config_decimal(self):
+        self.astype_lookup.config('decimal')
+        self.assertEqual(self.astype_lookup.type, Decimal)
+
+    def test_config_bool(self):
+        self.astype_lookup.config('bool')
+        self.assertEqual(self.astype_lookup.type, bool)
+
+    def test_config_invalid_type(self):
+        self.assertRaises(ValueError, self.astype_lookup.config, 'invalid')
+
+    def test_call(self):
+        self.astype_lookup.type = Decimal
+        self.assertEqual(Decimal('15.01'), self.astype_lookup('15.01'))
+
+
+class TestArithmeticLookup(unittest.TestCase):
+    def setUp(self):
+        super(TestArithmeticLookup, self).setUp()
+        self.arith_lookup = ArithmeticLookup()
+
+    def test_config_truediv(self):
+        self.arith_lookup.config('/', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.truediv)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_floordiv(self):
+        self.arith_lookup.config('//', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.floordiv)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_add(self):
+        self.arith_lookup.config('+', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.add)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_sub(self):
+        self.arith_lookup.config('-', '15', True)
+        self.assertEqual(self.arith_lookup.operator, operator.sub)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, True)
+
+    def test_config_mul(self):
+        self.arith_lookup.config('*', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.mul)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_pow(self):
+        self.arith_lookup.config('^', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.pow)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_mod(self):
+        self.arith_lookup.config('%', '15')
+        self.assertEqual(self.arith_lookup.operator, operator.mod)
+        self.assertEqual(self.arith_lookup.operand, '15')
+        self.assertEqual(self.arith_lookup.reverse, False)
+
+    def test_config_unsupported(self):
+        self.assertRaises(ValueError, self.arith_lookup.config, "&",
+                          False, True)
+        self.assertRaises(ValueError, self.arith_lookup.config, "**",
+                          False, True)
+
+    def test_call(self):
+        self.arith_lookup.config('-', '10')
+        self.assertEqual(5, self.arith_lookup(15))
+
+    def test_call_reverse(self):
+        self.arith_lookup.config('-', '10', True)
+        self.assertEqual(-5, self.arith_lookup(15))
+
+    def test_call_true_division(self):
+        self.arith_lookup.config('/', '2')
+        self.assertEqual(2.5, self.arith_lookup(5))
+
+    def test_call_floor_division(self):
+        self.arith_lookup.config('//', '2')
+        self.assertEqual(2, self.arith_lookup(5))
