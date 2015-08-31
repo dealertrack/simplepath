@@ -2,6 +2,7 @@
 """Tests all functions in simplepath.utils"""
 from __future__ import unicode_literals
 import unittest
+import operator
 
 from mock import patch
 
@@ -80,15 +81,21 @@ class TestDeepVars(unittest.TestCase):
 
 class TestDivide(unittest.TestCase):
     """Tests for the divide utility."""
-    def test_divide_div_defined(self):
+
+    @patch('simplepath.utils.operator')
+    def test_divide_div_defined(self, mock_operator):
         """utils.divide must use operator.div when it is defined"""
+        # This assignment is necessary, because Python 3 does
+        # not have operator.div
+        mock_operator.div = operator.floordiv
         self.assertEqual(2, divide(5, 2))
 
-    @patch('simplepath.utils.operator.div')
-    def test_divide_div_undefined(self, mock_div):
+    @patch('simplepath.utils.operator')
+    def test_divide_div_undefined(self, mock_operator):
         """
         utils.divide must use operator.truediv when operator.div
         is not defined
         """
-        mock_div.side_effect = AttributeError
+        mock_operator.div.side_effect = AttributeError
+        mock_operator.truediv = operator.truediv
         self.assertEqual(2.5, divide(5, 2))
