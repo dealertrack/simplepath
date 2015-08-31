@@ -6,7 +6,6 @@ from decimal import Decimal
 
 import mock
 
-from simplepath import utils
 from simplepath.lookups import (
     ArithmeticLookup,
     AsTypeLookup,
@@ -254,17 +253,17 @@ class TestArithmeticLookup(unittest.TestCase):
                           False, True)
 
     def test_call(self):
-        self.arith_lookup.config('-', 10)
+        self.arith_lookup.config('-', '10')
         self.assertEqual(5, self.arith_lookup(15))
 
     def test_call_reverse(self):
-        self.arith_lookup.config('-', 10, True)
+        self.arith_lookup.config('-', '10', True)
         self.assertEqual(-5, self.arith_lookup(15))
 
     def test_call_true_division(self):
-        self.arith_lookup.config('/', 2)
+        self.arith_lookup.config('/', '2')
         self.assertEqual(2.5, self.arith_lookup(5))
 
     def test_call_floor_division(self):
-        self.arith_lookup.config('//', 2)
+        self.arith_lookup.config('//', '2')
         self.assertEqual(2, self.arith_lookup(5))
