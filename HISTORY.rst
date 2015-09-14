@@ -3,10 +3,16 @@
 History
 -------
 
+0.3.2 (2015-09-14)
+~~~~~~~~~~~~~~~~~~~~~
+
+* Registered ``AsTypeLookup`` and ``ArithmeticLookup`` as ``as_type`` and ``arith`` lookups
+  in default lookup registry
+
 0.3.1 (2015-08-28)
 ~~~~~~~~~~~~~~~~~~~~~
 
-* Added the AsTypeLookup and ArithmeticLookup
+* Added the ``AsTypeLookup`` and ``ArithmeticLookup``
 
 0.3.0 (2015-07-15)
 ~~~~~~~~~~~~~~~~~~~~~

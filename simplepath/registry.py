@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from .lookups import FindInListLookup, KeyLookup
+from .lookups import (
+    ArithmeticLookup,
+    AsTypeLookup,
+    FindInListLookup,
+    KeyLookup,
+)
 
 
 class LookupRegistry(dict):
@@ -17,4 +22,6 @@ registry = LookupRegistry('simplepath.registry')
 
 # register built-in lookups
 registry.register(None, KeyLookup)
+registry.register('arith', ArithmeticLookup)
+registry.register('as_type', AsTypeLookup)
 registry.register('find', FindInListLookup)
