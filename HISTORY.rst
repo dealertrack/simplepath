@@ -3,6 +3,13 @@
 History
 -------
 
+0.3.3 (2016-05-15)
+~~~~~~~~~~~~~~~~~~~~~
+
+* Fixed bug where global LUT would leak data when calling expressions
+  within custom lookups. See `#11 <https://github.com/dealertrack/simplepath/issues/11>`_.
+* Switched to using Python 3.5 vs 3.4 for running Travis builds.
+
 0.3.2 (2015-09-14)
 ~~~~~~~~~~~~~~~~~~~~~
 
