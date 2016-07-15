@@ -20,7 +20,8 @@ class BaseLookup(object):
         return expression(
             data,
             super_root=extra.get('super_root'),
-            lut=extra.get('lut'),
+            # cant use global lut since state can leak between calls
+            lut={},
             context=extra.get('context'),
         )
 

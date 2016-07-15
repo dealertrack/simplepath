@@ -6,6 +6,8 @@ from decimal import Decimal
 
 import mock
 
+from simplepath.constants import FailMode
+from simplepath.expressions import Expression
 from simplepath.lookups import (
     ArithmeticLookup,
     AsTypeLookup,
@@ -55,7 +57,7 @@ class TestBaseLookup(unittest.TestCase):
         expression.assert_called_once_with(
             mock.sentinel.data,
             super_root=mock.sentinel.super_root,
-            lut=mock.sentinel.lut,
+            lut={},
             context=mock.sentinel.context,
         )
 
@@ -267,3 +269,51 @@ class TestArithmeticLookup(unittest.TestCase):
     def test_call_floor_division(self):
         self.arith_lookup.config('//', '2')
         self.assertEqual(2, self.arith_lookup(5))
+
+
+class TestCustomLookup(unittest.TestCase):
+    def test_shared_global_lut(self):
+        class CustomLookup(BaseLookup):
+            def config(self):
+                self.expression = Expression(
+                    'foo.bar',
+                    fail_mode=FailMode.DEFAULT,
+                    default=None,
+                )
+
+            def __call__(self, node, extra=None):
+                return self.call_expression(self.expression, node, extra)
+
+        data = {
+            'foo': {
+                'foo': {
+                    'bar': 'foo',
+                },
+                'type': 'foo',
+            },
+            'bar': {
+                'foo': {
+                    'bar': 'bar',
+                },
+                'type': 'bar',
+            }
+        }
+
+        lookup = CustomLookup().setup(expression='random')
+        lut = {}
+
+        first = lookup(data['foo'], {
+            'root': data,
+            'super_root': data,
+            'lut': lut,
+            'context': {}
+        })
+        second = lookup(data['bar'], {
+            'root': data,
+            'super_root': data,
+            'lut': lut,
+            'context': {}
+        })
+
+        self.assertEqual(first, 'foo'),
+        self.assertEqual(second, 'bar'),
