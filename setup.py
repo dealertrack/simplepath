@@ -9,8 +9,8 @@ from simplepath import __author__, __version__
 
 
 def read(fname):
-    return (open(os.path.join(os.path.dirname(__file__), fname), 'rb')
-            .read().decode('utf-8'))
+    with open(os.path.join(os.path.dirname(__file__), fname), 'rb') as fid:
+        return fid.read().decode('utf-8')
 
 
 authors = read('AUTHORS.rst')
@@ -23,8 +23,8 @@ requirements = read('requirements.txt').splitlines() + [
 ]
 
 test_requirements = (
-    read('requirements.txt').splitlines()
-    + read('requirements-dev.txt').splitlines()[1:]
+    read('requirements.txt').splitlines() +
+    read('requirements-dev.txt').splitlines()[1:]
 )
 
 setup(
@@ -36,7 +36,7 @@ setup(
     long_description='\n\n'.join([readme, history, authors, licence]),
     url='https://github.com/dealertrack/simplepath',
     license='MIT',
-    packages=find_packages(exclude=['test', 'test.*']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     install_requires=requirements,
     test_suite='tests',
     tests_require=test_requirements,

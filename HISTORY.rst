@@ -3,6 +3,13 @@
 History
 -------
 
+0.3.4 (2017-07-28)
+~~~~~~~~~~~~~~~~~~~~~
+
+* Using wheel for distribution.
+* Removed tests from being packaged.
+* Switched to using Python 3.6 vs 3.5 for running Travis builds.
+
 0.3.3 (2016-05-15)
 ~~~~~~~~~~~~~~~~~~~~~
 
