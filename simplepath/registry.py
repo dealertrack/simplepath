@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from .lookups import (
-    ArithmeticLookup,
-    AsTypeLookup,
-    FindInListLookup,
-    KeyLookup,
-)
+from .lookups import ArithmeticLookup, AsTypeLookup, FindInListLookup, KeyLookup
 
 
 class LookupRegistry(dict):

@@ -45,6 +45,7 @@ clean-test-all: clean-test
 
 lint:
 	flake8 simplepath tests
+	importanize --ci
 
 test:
 	nosetests ${NOSE_FLAGS} tests/

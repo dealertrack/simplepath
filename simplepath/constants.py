@@ -25,4 +25,5 @@ class FailMode(object):
     def is_valid(cls, fail_mode):
         return fail_mode in vars(cls).values()
 
+
 DEFAULT_FAIL_MODE = FailMode.FAIL

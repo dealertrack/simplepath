@@ -1,6 +1,7 @@
 {
     "exclude": [
-        "*/docs/conf.py"
+        "*/docs/conf.py",
+        "*/.tox"
     ],
     "groups": [
         {
