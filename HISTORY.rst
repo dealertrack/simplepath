@@ -6,7 +6,7 @@ History
 0.3.5 (2018-06-14)
 ~~~~~~~~~~~~~~~~~~~~~
 
-* Fixed bug in which TypeError would result if a None value were mapped to a ``ListConfig``
+* Fixed bug in which ``TypeError`` would result if a ``None`` value were mapped to a ``ListConfig``
 
 
 0.3.4 (2017-07-28)
