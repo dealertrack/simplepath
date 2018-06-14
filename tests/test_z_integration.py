@@ -24,6 +24,12 @@ class TestIntegration(unittest.TestCase):
                     Value('with'),
                     Value('Ion Engine'),
                 ],
+                'munchies': ListConfig(
+                    'example.food',
+                    {
+                        'item': 'name',
+                    }
+                ),
             }
 
         data = {
@@ -42,7 +48,8 @@ class TestIntegration(unittest.TestCase):
                         'planet': 'Space',
                         'residents': 'aliens',
                     },
-                ]
+                ],
+                'food': None,
             },
             'cool_object': 'Space Shuttle',
         }
@@ -68,7 +75,8 @@ class TestIntegration(unittest.TestCase):
                 'Space Shuttle',
                 'with',
                 'Ion Engine',
-            ]
+            ],
+            'munchies': []
         }
 
         self.assertDictEqual(Config.map_data(data), expected)

@@ -285,9 +285,10 @@ class MapperBase(object):
             context=self.get_lookup_context(),
         )
 
-        for value in input_list:
-            # due to relative lookups, cannot use main lut
-            output.append(self.map_config_node(node, value, super_root, {}))
+        if input_list is not None:
+            for value in input_list:
+                # due to relative lookups, cannot use main lut
+                output.append(self.map_config_node(node, value, super_root, {}))
 
         return output
 
@@ -323,7 +324,7 @@ class MapperBase(object):
 
         else:
             raise TypeError(
-                '"{}" does not quality for free ice-cream.'
+                '"{}" does not qualify for free ice-cream.'
                 ''.format(type(node))
             )
 
