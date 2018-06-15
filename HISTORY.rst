@@ -3,19 +3,25 @@
 History
 -------
 
+0.3.5 (2018-06-14)
+~~~~~~~~~~~~~~~~~~~~~
+
+* Fixed bug in which ``TypeError`` would result if a ``None`` value were mapped to a ``ListConfig``
+
+
 0.3.4 (2017-07-28)
 ~~~~~~~~~~~~~~~~~~~~~
 
-* Using wheel for distribution.
-* Removed tests from being packaged.
-* Switched to using Python 3.6 vs 3.5 for running Travis builds.
+* Using wheel for distribution
+* Removed tests from being packaged
+* Switched to using Python 3.6 vs 3.5 for running Travis builds
 
 0.3.3 (2016-05-15)
 ~~~~~~~~~~~~~~~~~~~~~
 
 * Fixed bug where global LUT would leak data when calling expressions
   within custom lookups. See `#11 <https://github.com/dealertrack/simplepath/issues/11>`_.
-* Switched to using Python 3.5 vs 3.4 for running Travis builds.
+* Switched to using Python 3.5 vs 3.4 for running Travis builds
 
 0.3.2 (2015-09-14)
 ~~~~~~~~~~~~~~~~~~~~~

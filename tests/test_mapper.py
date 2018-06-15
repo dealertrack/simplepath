@@ -490,6 +490,21 @@ class TestMapperBase(unittest.TestCase):
             {},
         )
 
+    @mock.patch.object(MapperBase, 'get_lookup_context')
+    def test_map_list_node_none_input_list(self, mock_get_lookup_context):
+        node = mock.MagicMock(
+            root=mock.MagicMock(return_value=None)
+        )
+
+        actual = self.mapper.map_list_node(
+            node,
+            mock.sentinel.data,
+            mock.sentinel.root,
+            mock.sentinel.lut,
+        )
+
+        self.assertListEqual([], actual)
+
     @mock.patch.object(MapperBase, 'map_node')
     def test_map_list(self, mock_map_node):
         nodes = [mock.MagicMock(spec=Expression)]
